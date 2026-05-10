@@ -859,11 +859,9 @@ function openDay(idx){
   document.getElementById('det-libre').innerHTML=day.libre?'<span class="libre-badge">🎉 Día libre incluido</span>':'';
   const body=document.getElementById('day-body');
   body.innerHTML='';
-  const navDiv=document.createElement('div');
-  navDiv.className='day-nav';
   const maxDay=diet==='estricta'?13:29;
-  navDiv.innerHTML=`<button class="dnav-btn" ${idx===0?'disabled':''} onclick="openDay(${idx-1})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Día ${idx}</button><button class="dnav-btn" ${idx===maxDay?'disabled':''} onclick="openDay(${idx+1})">Día ${idx+2} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>`;
-  body.appendChild(navDiv);
+  const fixedNav=document.getElementById('day-nav-fixed');
+  if(fixedNav){fixedNav.style.padding='10px 22px';fixedNav.innerHTML=`<button class="dnav-btn" ${idx===0?'disabled':''} onclick="openDay(${idx-1})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Día ${idx}</button><button class="dnav-btn" ${idx===maxDay?'disabled':''} onclick="openDay(${idx+1})">Día ${idx+2} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>`;}
   const meals=[
     {ico:'☀️',cls:'des',lbl:'Desayuno',txt:d.desayuno},
     {ico:'🥪',cls:'alm',lbl:'Almuerzo',txt:day.alm},
@@ -1048,11 +1046,15 @@ async function initCloudData() {
   appts = await cloudGet('appts', []);
   shopChecked = await cloudGet('shopChecked', {});
   // Start listeners after firebase is ready
+  waterData = await cloudGet('waterData', {jose:[],gabriela:[]});
+  localStorage.setItem('waterData', JSON.stringify(waterData));
   if (fbReady) {
     cloudListen('weightData', val => { weightData = val; if(currentScreen==='weight') renderWeight(); });
     cloudListen('appts', val => { appts = val; if(currentScreen==='appt') renderAppt(); });
     cloudListen('shopChecked', val => { shopChecked = val; if(currentScreen==='shop') renderShop(); });
+    cloudListen('waterData', val => { waterData=val; localStorage.setItem('waterData',JSON.stringify(val)); updateWaterBtn(); const wm=document.getElementById('water-modal'); if(wm&&wm.style.display==='flex') renderWater(); });
   }
+  updateWaterBtn();
 }
 initCloudData();
 
@@ -1223,10 +1225,74 @@ function updateWaterBtn(){
   }
 }
 
+function getMonthKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+
+function getMonthlyData(person){
+  const month=getMonthKey();
+  const daysInMonth=new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+  const result=[];
+  for(let d=1;d<=daysInMonth;d++){
+    const dateKey=`${month}-${String(d).padStart(2,'0')}`;
+    const entries=(waterData[person]||[]).filter(e=>e.date===dateKey);
+    const total=entries.reduce((a,e)=>a+e.ml,0);
+    result.push({day:d,ml:total});
+  }
+  return result;
+}
+
+function renderWaterChart(body){
+  const today=new Date().getDate();
+  const jData=getMonthlyData('jose');
+  const gData=getMonthlyData('gabriela');
+  const jGoal=WATER_GOALS['jose'];
+  const gGoal=WATER_GOALS['gabriela'];
+
+  const chartCard=document.createElement('div');
+  chartCard.style.cssText='background:var(--card);border-radius:16px;padding:16px;border:1px solid var(--border);margin-bottom:12px';
+  
+  const month=new Date().toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+  chartCard.innerHTML=`
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);font-family:'Space Grotesk',sans-serif;margin-bottom:4px">Hidratación mensual</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;font-family:'Space Grotesk',sans-serif">${month.charAt(0).toUpperCase()+month.slice(1)}</div>
+    <div style="display:flex;gap:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:3px;background:var(--neon);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Jose</span></div>
+      <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:3px;background:var(--blue);border-radius:2px"></div><span style="font-size:11px;color:var(--text2)">Gabriela</span></div>
+    </div>
+    <div style="position:relative;height:160px;width:100%"><canvas id="water-month-chart" width="360" height="160" style="width:100%;height:160px"></canvas></div>`;
+  body.appendChild(chartCard);
+
+  setTimeout(()=>{
+    const ctx=document.getElementById('water-month-chart');
+    if(!ctx||typeof Chart==='undefined') return;
+    const labels=jData.map(d=>d.day);
+    const jLiters=jData.map(d=>+(d.ml/1000).toFixed(2));
+    const gLiters=gData.map(d=>+(d.ml/1000).toFixed(2));
+    new Chart(ctx,{
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'Jose',data:jLiters,borderColor:'#f72585',backgroundColor:'rgba(247,37,133,0.08)',borderWidth:2,pointBackgroundColor:'#f72585',pointRadius:(ctx2,i)=>jData[i.dataIndex]?.ml>0?3:0,tension:.35,fill:true},
+          {label:'Gabriela',data:gLiters,borderColor:'#4cc9f0',backgroundColor:'rgba(76,201,240,0.08)',borderWidth:2,pointBackgroundColor:'#4cc9f0',pointRadius:(ctx2,i)=>gData[i.dataIndex]?.ml>0?3:0,tension:.35,fill:true}
+        ]
+      },
+      options:{
+        animation:false,responsive:false,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}L`}}},
+        scales:{
+          x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#404660',font:{size:9},maxTicksLimit:10}},
+          y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#404660',font:{size:9},callback:v=>`${v}L`},min:0,suggestedMax:3}
+        }
+      }
+    });
+  },80);
+}
+
 function renderWater(){
   const body=document.getElementById('water-modal-body');
   if(!body) return;
   body.innerHTML='';
+  renderWaterChart(body);
   const today=getTodayKey();
   const jml=getTodayMl('jose');
   const gml=getTodayMl('gabriela');
@@ -1320,6 +1386,36 @@ function closeWaterModal(){
 }
 
 // ── MIDNIGHT WATER RESET CHECK ──
+function checkMonthlyReset(){
+  const currentMonth=getMonthKey();
+  const lastMonth=localStorage.getItem('waterLastMonth');
+  if(lastMonth && lastMonth!==currentMonth){
+    // New month - archive and reset
+    const archived=JSON.parse(localStorage.getItem('waterArchive')||'{}');
+    archived[lastMonth]=JSON.parse(JSON.stringify(waterData));
+    localStorage.setItem('waterArchive',JSON.stringify(archived));
+    waterData={jose:[],gabriela:[]};
+    saveWater();
+    console.log('Monthly water reset done');
+  }
+  localStorage.setItem('waterLastMonth',currentMonth);
+}
+checkMonthlyReset();
+
+function checkMonthlyReset(){
+  const currentMonth=getMonthKey();
+  const lastMonth=localStorage.getItem('waterLastMonth');
+  if(lastMonth && lastMonth!==currentMonth){
+    const archived=JSON.parse(localStorage.getItem('waterArchive')||'{}');
+    archived[lastMonth]=JSON.parse(JSON.stringify(waterData));
+    localStorage.setItem('waterArchive',JSON.stringify(archived));
+    waterData={jose:[],gabriela:[]};
+    saveWater();
+  }
+  localStorage.setItem('waterLastMonth',currentMonth);
+}
+checkMonthlyReset();
+
 function checkMidnightReset(){
   const today=getTodayKey();
   const lastDay=localStorage.getItem('waterLastDay');
