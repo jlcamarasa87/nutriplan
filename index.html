@@ -8,6 +8,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+
+/* ── PIN SCREEN ── */
+#pin-screen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px}
+.pin-logo{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;color:var(--text);margin-bottom:6px}
+.pin-logo span{color:var(--neon);text-shadow:0 0 20px rgba(247,37,133,0.6)}
+.pin-sub{font-size:13px;color:var(--text2);margin-bottom:40px;font-weight:300}
+.pin-dots{display:flex;gap:14px;margin-bottom:32px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all .2s}
+.pin-dot.filled{background:var(--neon);border-color:var(--neon);box-shadow:0 0 10px rgba(247,37,133,0.6)}
+.pin-dot.error{background:var(--red);border-color:var(--red);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:280px}
+.pin-btn{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:18px 0;font-size:22px;font-weight:600;color:var(--text);cursor:pointer;text-align:center;font-family:'Space Grotesk',sans-serif;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.pin-btn:active{transform:scale(.92);background:var(--card2);border-color:var(--neon)}
+.pin-btn.del{font-size:18px;color:var(--text2)}
+.pin-btn.empty{background:transparent;border-color:transparent;pointer-events:none}
+.pin-error-msg{font-size:13px;color:var(--red);margin-top:16px;font-weight:500;min-height:20px;text-align:center}
+
 :root{
   --bg:      #080d1a;
   --bg2:     #0d1426;
@@ -305,6 +323,36 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
 </head>
 <body>
 <div id="app">
+
+<div id="pin-screen">
+  <div class="tb-glow" style="top:-20px;right:-20px"></div>
+  <div class="tb-glow2" style="bottom:0;left:-20px"></div>
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <div class="pin-logo">Nutri<span>Plan</span></div>
+    <div class="pin-sub">Jose &amp; Gabriela · Introduce tu PIN</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn empty"></button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDel()">&#x232B;</button>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+  </div>
+</div>
 
 <!-- ══ HOME ══ -->
 <div id="sc-home" class="screen">
@@ -1434,6 +1482,61 @@ function checkMidnightReset(){
   }, msUntilMidnight);
 }
 checkMidnightReset();
+
+// ══ PIN LOCK ══
+const PIN_CORRECT = '0701';
+let pinCurrent = '';
+let pinUnlocked = sessionStorage.getItem('pinUnlocked') === '1';
+
+function initPin(){
+  if(pinUnlocked){
+    document.getElementById('pin-screen').style.display='none';
+  }
+}
+
+function pinPress(digit){
+  if(pinCurrent.length >= 4) return;
+  pinCurrent += digit;
+  updatePinDots();
+  if(pinCurrent.length === 4){
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinDel(){
+  if(pinCurrent.length === 0) return;
+  pinCurrent = pinCurrent.slice(0,-1);
+  updatePinDots();
+  document.getElementById('pin-error').textContent='';
+}
+
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    const dot=document.getElementById('pd'+i);
+    dot.classList.toggle('filled', i < pinCurrent.length);
+    dot.classList.remove('error');
+  }
+}
+
+function checkPin(){
+  if(pinCurrent === PIN_CORRECT){
+    sessionStorage.setItem('pinUnlocked','1');
+    const screen=document.getElementById('pin-screen');
+    screen.style.opacity='0';
+    screen.style.transition='opacity .3s';
+    setTimeout(()=>{ screen.style.display='none'; },300);
+  } else {
+    for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
+    document.getElementById('pin-error').textContent='PIN incorrecto';
+    setTimeout(()=>{
+      pinCurrent='';
+      updatePinDots();
+      document.getElementById('pin-error').textContent='';
+    },800);
+  }
+}
+
+initPin();
 </script>
 </body>
 </html>
