@@ -60,6 +60,47 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
 
 
 
+
+
+/* ── WATER MODAL ── */
+
+/* ── WATER TRACKER ── */
+.water-screen{background:var(--bg)}
+.water-banner{background:linear-gradient(135deg,rgba(76,201,240,0.15),rgba(123,47,247,0.15));border:1px solid rgba(76,201,240,0.3);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+.water-banner-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:6px;font-family:'Space Grotesk',sans-serif}
+.water-goal{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:700;color:var(--text)}
+.water-goal.done{color:var(--green);text-shadow:0 0 20px rgba(6,214,160,0.5)}
+.water-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.water-prog-wrap{margin:12px 0 6px}
+.water-prog-bg{height:10px;background:var(--card2);border-radius:5px;overflow:hidden}
+.water-prog-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s;box-shadow:0 0 8px rgba(76,201,240,0.4)}
+.water-prog-fill.done{background:linear-gradient(90deg,var(--green),#06d6a0)}
+.water-pct{font-size:12px;font-weight:700;color:var(--blue);text-align:right;margin-top:4px;font-family:'Space Grotesk',sans-serif}
+.water-pct.done{color:var(--green)}
+.water-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.water-btn{background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.water-btn:active{transform:scale(.95)}
+.water-btn-ico{font-size:24px;margin-bottom:4px}
+.water-btn-label{font-size:14px;font-weight:600;color:var(--text)}
+.water-btn-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.water-btn:hover{border-color:var(--blue);box-shadow:0 0 10px rgba(76,201,240,0.2)}
+.water-reset{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;font-family:'Outfit',sans-serif;margin-bottom:14px}
+.water-log-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;font-family:'Space Grotesk',sans-serif}
+.water-log-items{display:flex;flex-wrap:wrap;gap:6px}
+.water-log-item{background:var(--card2);border-radius:var(--r-sm);padding:5px 10px;font-size:12px;color:var(--blue);font-weight:600;font-family:'Space Grotesk',sans-serif;border:1px solid var(--border)}
+.water-compete{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.wc-card{background:var(--card);border-radius:var(--r);padding:14px;border:1px solid var(--border);text-align:center}
+.wc-card.winning{border-color:var(--neon);box-shadow:0 0 14px rgba(247,37,133,0.2)}
+.wc-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:center top;margin:0 auto 8px;display:block;border:2px solid var(--border2)}
+.wc-card.winning .wc-avatar{border-color:var(--neon);box-shadow:0 0 10px rgba(247,37,133,0.5)}
+.wc-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.wc-amount{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--blue)}
+.wc-amount.done{color:var(--green)}
+.wc-prog{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:6px}
+.wc-prog-fill{height:100%;border-radius:3px;background:var(--blue);transition:width .4s}
+.wc-prog-fill.done{background:var(--green)}
+.wc-crown{font-size:16px;margin-bottom:4px}
+
 /* ── APPOINTMENTS ── */
 .appt-card{background:var(--card);border-radius:var(--r);padding:16px;border:1px solid var(--border);margin-bottom:10px;position:relative;overflow:hidden}
 .appt-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--neon),var(--purple))}
@@ -311,7 +352,12 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
     <div style="padding-top:14px">
       <div class="qs-row">
         <div class="qs-card"><div class="qs-lbl">Calorías</div><div class="qs-val" id="qs-kcal">~1.800</div><div class="qs-sub">kcal/día</div></div>
-        <div class="qs-card"><div class="qs-lbl">Agua</div><div class="qs-val" id="qs-agua">2,5 L</div><div class="qs-sub" id="qs-aguasub">mínimo</div></div>
+        <div class="qs-card" onclick="openWaterModal()" style="cursor:pointer">
+          <div class="qs-lbl">Agua 💧</div>
+          <div class="qs-val" id="qs-agua">2,5 L</div>
+          <div style="height:4px;background:var(--card2);border-radius:2px;overflow:hidden;margin-top:5px"><div id="qs-agua-bar" style="height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s"></div></div>
+
+        </div>
         <div class="qs-card"><div class="qs-lbl">Libres</div><div class="qs-val">2/sem</div><div class="qs-sub" id="qs-libressub">sáb + dom</div></div>
       </div>
     </div>
@@ -340,6 +386,7 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
       <div id="det-libre"></div>
     </div>
   </div>
+  <div id="day-nav-fixed" style="flex-shrink:0;padding:10px 22px 0;background:var(--bg2);display:flex;gap:8px;border-bottom:1px solid var(--border)"></div>
   <div class="scroll-area" id="day-body"></div>
   <div class="bnav">
     <div class="bnav-item" onclick="nav('home')"><div class="bnav-ico">📅</div><div class="bnav-lbl">Menú</div></div>
@@ -482,6 +529,7 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
   </div>
 </div>
 
+
 <!-- ══ APPOINTMENTS ══ -->
 <div id="sc-appt" class="screen off">
   <div class="topbar">
@@ -502,6 +550,19 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
   </div>
 </div>
 
+
+<div id="water-modal" style="display:none;position:absolute;inset:0;z-index:200;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);flex-direction:column;justify-content:flex-end">
+  <div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-height:88dvh;overflow-y:auto;padding-bottom:30px">
+    <div style="position:sticky;top:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 22px 14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);font-family:'Space Grotesk',sans-serif">Hidratación diaria</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--text)">Tracker de <span style="color:var(--neon)">agua</span> &#x1F4A7;</div>
+      </div>
+      <button onclick="closeWaterModal()" style="background:var(--card2);border:1px solid var(--border2);border-radius:50%;width:34px;height:34px;color:var(--text2);font-size:16px;cursor:pointer;font-family:'Outfit',sans-serif">&#x2715;</button>
+    </div>
+    <div id="water-modal-body" style="padding:16px 22px 0"></div>
+  </div>
+</div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -693,18 +754,18 @@ const DATA={
   }
 };
 
-const SHOP_CATS=[
-  {name:'🥩 Carnes & aves',items:[{n:'Pechuga de pollo / contramuslo',q:'~1,5 kg'},{n:'Ternera magra picada',q:'~600 g'},{n:'Salchichas de pollo',q:'1 paquete'},{n:'Longanizas de pollo/pavo',q:'1 paquete'},{n:'Jamón serrano en lonchas',q:'200 g'},{n:'Jamón cocido / pechuga de pavo',q:'200 g'},{n:'Hamburguesa de ternera',q:'2-4 uds'}]},
-  {name:'🐟 Pescados & mariscos',items:[{n:'Merluza filetes',q:'~500 g'},{n:'Salmón o emperador',q:'~400 g'},{n:'Sepia',q:'~300 g'},{n:'Gambas cocidas (bolsa)',q:'2 bolsas'},{n:'Atún al natural (latas)',q:'10-12 latas'},{n:'Pota al ajillo (latas)',q:'4 latas'},{n:'Salmón al natural (latas)',q:'4 latas'}]},
-  {name:'🥚 Huevos & lácteos',items:[{n:'Huevos',q:'18-24 uds'},{n:'Claras de huevo líquidas',q:'1 brick'},{n:'Leche desnatada sin lactosa (Jose)',q:'2-3 L'},{n:'Leche desnatada (Gabriela)',q:'1,5-2 L'},{n:'Yogur proteico / queso fresco batido',q:'10-12 uds'},{n:'Yogur 0% sabores',q:'10-12 uds'},{n:'Queso havarty light sin lactosa',q:'1 paquete'},{n:'Mozzarella light (bolas)',q:'2 uds'},{n:'Queso de untar light sin lactosa',q:'1 tarrina'}]},
-  {name:'🥦 Verduras & hortalizas',items:[{n:'Calabacín',q:'4-5 uds'},{n:'Berenjena',q:'2-3 uds'},{n:'Champiñones',q:'~800 g'},{n:'Espárragos',q:'2 manojos'},{n:'Brócoli',q:'2 cabezas'},{n:'Puerro',q:'2-3 uds'},{n:'Cebolla',q:'4-5 uds'},{n:'Tomate',q:'6-8 uds'},{n:'Lechuga',q:'2 uds'},{n:'Zanahoria',q:'4-6 uds'},{n:'Ajos tiernos',q:'1 manojo'},{n:'Apio (entre horas)',q:'1 ud'}]},
-  {name:'🍎 Frutas',items:[{n:'Plátanos',q:'6-8 uds'},{n:'Manzanas',q:'4-6 uds'},{n:'Fresas o arándanos frescos/congelados',q:'~500 g'},{n:'Fruta de temporada variada',q:'~1,5 kg'}]},
-  {name:'🌾 Hidratos & conservas',items:[{n:'Arroz',q:'500 g'},{n:'Fideos / fideos chinos de arroz',q:'400 g'},{n:'Macarrones integrales',q:'500 g'},{n:'Macarrones de garbanzo / lenteja roja (Gallo)',q:'2 paquetes'},{n:'Espaguetis',q:'500 g'},{n:'Ñoquis (Mercadona, bolsa)',q:'1-2 bolsas'},{n:'Lentejas (bote cocido)',q:'2 botes'},{n:'Patatas en conserva',q:'2-3 botes'},{n:'Pan de semillas / integral',q:'1 barra'},{n:'Pan thins (Gabriela) y pan de cristal (Jose)',q:'1 bolsa c/u'},{n:'Wraps / fajitas',q:'1 paquete'},{n:'Tortitas de arroz',q:'2 bolsas'},{n:'Muesli sin azúcar',q:'1 bote'},{n:'Picatostes (sin freír)',q:'1 bolsa'}]},
-  {name:'🫙 Salsas & condimentos',items:[{n:'Tomate frito',q:'~500 ml'},{n:'Salsa de soja',q:'1 botella'},{n:'Salsa teriyaki',q:'1 botella'},{n:'Kétchup zero azúcar',q:'1 bote'},{n:'Aceite de oliva virgen extra',q:'1 botella'},{n:'Hummus',q:'1-2 botes'},{n:'Aguacate',q:'3-4 uds'},{n:'Aceitunas / pepinillos',q:'1 bote c/u'},{n:'Maíz dulce en conserva',q:'1-2 latas'},{n:'Nesquik sin azúcar (Gabriela)',q:'1 bote'}]},
-  {name:'🥜 Extras & meriendas',items:[{n:'Crema de cacahuete / cacahuete en polvo desgrasado',q:'1 bote'},{n:'Cholek brick sin azúcar sin lactosa (Mercadona)',q:'4-6 briks'},{n:'Natillas de proteínas (Mercadona)',q:'4 uds'},{n:'Altramuces',q:'1 bote'},{n:'Miel',q:'1 frasco pequeño'},{n:'Mermelada de fresa sin azúcar',q:'1 bote'},{n:'Sazonador pescado / pizza / mexicano',q:'1 c/u'}]},
-];
+const SHOP_CATS_COMPLETA=[{name:'🥩 Carnes & aves',items:[{n:'Salchichas de pollo',q:'3 paquetes'},{n:'Contramuslo de pollo (sin piel)',q:'~1 kg'},{n:'Pechuga de pollo',q:'~1,5 kg'},{n:'Pollo al natural en lata',q:'4 latas'},{n:'Carne picada de ternera magra',q:'~800 g'},{n:'Carne picada de pavo',q:'~500 g'},{n:'Chuletas de pavo / pechuga de pavo en lonchas',q:'~400 g'},{n:'Jamón serrano en lonchas',q:'~300 g'},{n:'Jamón cocido / pechuga de pavo en lonchas',q:'~300 g'},{n:'Hamburguesa de ternera',q:'2 uds'},{n:'Longanizas de pollo o pavo',q:'2 paquetes'},{n:'Longaniza grande de pollo/pavo (perritos)',q:'1 paquete'},{n:'Lomo de cinta (dieta estricta)',q:'~300 g'}]},{name:'🐟 Pescados & mariscos',items:[{n:'Merluza filetes (Jose)',q:'~600 g'},{n:'Salmón filetes (Jose)',q:'~500 g'},{n:'Emperador filetes (Gabriela)',q:'~500 g'},{n:'Sepia',q:'~500 g'},{n:'Gambas cocidas (bolsa)',q:'3 bolsas'},{n:'Atún al natural (latas)',q:'15-18 latas'},{n:'Salmón al natural (latas)',q:'6 latas'},{n:'Pota al ajillo (latas)',q:'6 latas'}]},{name:'🥚 Huevos & lácteos',items:[{n:'Huevos',q:'24-30 uds'},{n:'Claras de huevo líquidas',q:'2 bricks'},{n:'Leche desnatada sin lactosa (Jose)',q:'3-4 L'},{n:'Leche desnatada (Gabriela)',q:'2-3 L'},{n:'Yogur proteico / queso fresco batido',q:'15-20 uds'},{n:'Yogur 0% sabores (postre cena)',q:'20-25 uds'},{n:'Danone natural (postre días especiales)',q:'6-8 uds'},{n:'Queso havarty light sin lactosa',q:'2 paquetes'},{n:'Queso mozzarella light (bolas)',q:'3-4 uds'},{n:'Queso de untar light sin lactosa',q:'2 tarrinas'},{n:'Queso de cuña light (ensalada césar)',q:'1 ud'},{n:'Queso fresco (para ensaladas)',q:'1 ud'}]},{name:'🥦 Verduras & hortalizas',items:[{n:'Calabacín',q:'6-8 uds'},{n:'Berenjena',q:'4-5 uds'},{n:'Champiñones',q:'~1,2 kg'},{n:'Espárragos',q:'3 manojos'},{n:'Brócoli',q:'2 cabezas'},{n:'Puerro',q:'3-4 uds'},{n:'Cebolla',q:'6-8 uds'},{n:'Tomate',q:'8-10 uds'},{n:'Lechuga',q:'3 uds'},{n:'Zanahoria',q:'4-6 uds'},{n:'Ajos tiernos / ajetes',q:'2 manojos'},{n:'Judía verde (bajoqueta)',q:'~300 g'},{n:'Boniato',q:'4-5 uds'},{n:'Pimiento rojo (solo Gabriela)',q:'2-3 uds'},{n:'Pepino holandés',q:'2 uds'},{n:'Apio (entre horas)',q:'1 ud'}]},{name:'🍎 Frutas',items:[{n:'Plátanos',q:'8-10 uds'},{n:'Manzanas',q:'6-8 uds'},{n:'Fresas o arándanos (frescos o congelados)',q:'~600 g'},{n:'Fruta de temporada variada (postre comida)',q:'~2 kg'},{n:'Piña en su jugo (lata, dieta estricta)',q:'1 lata'}]},{name:'🌾 Hidratos & conservas',items:[{n:'Arroz blanco o integral',q:'1 kg'},{n:'Fideos (para caldo)',q:'300 g'},{n:'Fideos chinos de arroz',q:'400 g'},{n:'Macarrones integrales',q:'600 g'},{n:'Macarrones de garbanzo o lenteja roja (Gallo)',q:'3 paquetes'},{n:'Espaguetis',q:'400 g'},{n:'Ñoquis (Mercadona, bolsa lista)',q:'2 bolsas'},{n:'Tortellini de espinacas con ricota',q:'1 paquete'},{n:'Lentejas cocidas (bote)',q:'3 botes'},{n:'Garbanzos cocidos (bote)',q:'2 botes'},{n:'Patatas en conserva',q:'3-4 botes'},{n:'Pan integral / semillas (60 g/uso Jose, 40 g Gabriela)',q:'2 barras'},{n:'Pan thins (Gabriela, búrguer y sándwich)',q:'1 bolsa'},{n:'Pan de cristal (Jose, búrguer)',q:'1 bolsa'},{n:'Pan de perrito (perritos)',q:'1 paquete'},{n:'Wraps / fajitas',q:'2 paquetes'},{n:'Tortitas de arroz',q:'3 bolsas'},{n:'Picatostes sin freír',q:'1 bolsa'},{n:'Muesli sin azúcar',q:'1 bote grande'},{n:'Mazorca de maíz',q:'2 uds'},{n:'Maíz dulce en conserva',q:'2 latas'},{n:'Aceitunas negras',q:'1 bote'},{n:'Aceitunas variadas',q:'1 bote'},{n:'Pepinillos en vinagre',q:'1 bote'},{n:'Altramuces (entre horas)',q:'1 bote'}]},{name:'🫙 Salsas & condimentos',items:[{n:'Tomate frito (brik o bote)',q:'~800 ml'},{n:'Salsa de soja',q:'1 botella'},{n:'Salsa teriyaki',q:'1 botella'},{n:'Kétchup zero azúcar',q:'1 bote'},{n:'Mostaza (salsa opcional salmón)',q:'1 bote'},{n:'Salsa barbacoa (brochetas)',q:'1 bote'},{n:'Sazonador para pizza',q:'1 bote'},{n:'Sazonador para pescado',q:'1 bote'},{n:'Sazonador mexicano (fajitas)',q:'1 bote'},{n:'Aceite de oliva virgen extra',q:'1 botella grande'},{n:'Hummus',q:'2 botes'},{n:'Aguacate',q:'4-5 uds'}]},{name:'🥜 Extras & meriendas',items:[{n:'Cacahuete en polvo desgrasado',q:'1 bote'},{n:'Crema de cacahuete',q:'1 bote'},{n:'Cholek brick sin azúcar sin lactosa (Mercadona)',q:'6-8 briks'},{n:'Natillas de proteínas vainilla o chocolate (Mercadona)',q:'6 uds'},{n:'Miel (frasco pequeño)',q:'1 ud'},{n:'Mermelada de fresa sin azúcar',q:'1 bote'},{n:'Mermelada de frutos rojos sin azúcar',q:'1 bote'},{n:'Cacao en polvo / Nesquik sin azúcar (Gabriela)',q:'1 bote'},{n:'Canela molida',q:'1 bote'},{n:'Orégano y albahaca',q:'1 bote c/u'},{n:'Caldo de pollo (brick, para sopas)',q:'2-3 bricks'}]}];
+const SHOP_CATS_ESTRICTA=[{name:'🥩 Carnes & aves',items:[{n:'Pechuga de pollo',q:'~600 g (lunes x2 semanas)'},{n:'Pollo entero o muslos (horno/air fryer jueves)',q:'~800 g'},{n:'Chuletas de pavo (miércoles)',q:'~400 g'},{n:'Lomo de cinta (viernes)',q:'~400 g'},{n:'Carne picada de ternera (domingo, berenjena rellena)',q:'~500 g'},{n:'Jamón serrano (viernes con bajoqueta)',q:'~150 g'},{n:'Jamón york / pechuga de pavo (almuerzos y meriendas)',q:'~200 g'},{n:'Longaniza de pollo/pavo (fajita viernes cena)',q:'1 paquete'}]},{name:'🐟 Pescados & mariscos',items:[{n:'Merluza filetes (lunes cena)',q:'~400 g'},{n:'Salmón filetes (Jose, jueves cena)',q:'~300 g'},{n:'Emperador filetes (Gabriela, jueves cena)',q:'~300 g'},{n:'Sepia (martes cena)',q:'~400 g'}]},{name:'🥚 Huevos & lácteos',items:[{n:'Huevos',q:'12-15 uds'},{n:'Leche desnatada sin lactosa (Jose, desayuno)',q:'2 L'},{n:'Leche desnatada (Gabriela, desayuno con Nesquik)',q:'1,5 L'},{n:'Yogur natural o de sabores 0% (postre)',q:'10-12 uds'},{n:'Mozzarella light (fajita viernes cena)',q:'2 bolas'}]},{name:'🥦 Verduras & hortalizas',items:[{n:'Calabacín (lunes cena en crema, domingo cena)',q:'4-5 uds'},{n:'Puerro (lunes crema)',q:'2 uds'},{n:'Champiñones (martes cena)',q:'~400 g'},{n:'Brócoli (miércoles comida, Jose)',q:'1 cabeza'},{n:'Pimiento rojo (miércoles comida, solo Gabriela)',q:'2 uds'},{n:'Berenjena (miércoles cena y domingo rellena)',q:'4-5 uds'},{n:'Boniato (jueves comida)',q:'3-4 uds'},{n:'Cebolla',q:'4-5 uds'},{n:'Tomate',q:'4-5 uds'},{n:'Lechuga (almuerzo y fajita viernes)',q:'2 uds'},{n:'Judía verde / bajoqueta (viernes comida)',q:'~300 g'},{n:'Zanahoria (entre horas, almuerzos)',q:'4-6 uds'},{n:'Apio (entre horas)',q:'1 ud'}]},{name:'🍎 Frutas',items:[{n:'Fruta variada de temporada (almuerzo y merienda)',q:'~1,5 kg'},{n:'Piña en su jugo (miércoles cena, opción)',q:'1 lata'},{n:'Almendras naturales (almuerzo Gabriela)',q:'1 bolsa pequeña'}]},{name:'🌾 Hidratos & conservas',items:[{n:'Pan (almuerzo, 4-5 dedos por persona)',q:'2 barras'},{n:'Wraps / fajitas (viernes cena)',q:'1 paquete'},{n:'Garbanzos cocidos (martes comida, 2 cucharones)',q:'2 botes'},{n:'Patata (jueves con pollo y lunes crema)',q:'~600 g'},{n:'Pepinillos en vinagre (entre horas)',q:'1 bote'},{n:'Altramuces (entre horas)',q:'1 bote'}]},{name:'🫙 Salsas & condimentos',items:[{n:'Aceite de oliva virgen extra',q:'1 botella'},{n:'Tomate frito (domingo berenjena rellena)',q:'~200 ml'},{n:'Sazonador para pollo / especias al gusto',q:'1 bote'},{n:'Sal, pimienta, limón, ajo',q:'al gusto'},{n:'Cacao en polvo / Nesquik sin azúcar (Gabriela, desayuno)',q:'1 bote'},{n:'Azúcar (Gabriela, 1 cda desayuno)',q:'1 bote pequeño'}]}];
+const SHOP_CATS=SHOP_CATS_COMPLETA;
+// ══ APP STATE ══
+let persona='jose';
+let diet='completa';
+let week=1;
+let weightPersona='jose';
+let currentDay=null;
+let currentScreen='home';
+let weightChart=null;
 
-let persona='jose',diet='completa',week=1,weightPersona='jose',currentDay=null,currentScreen='home',weightChart=null;
 let shopChecked=JSON.parse(localStorage.getItem('shopChecked')||'{}'); // synced via Firebase
 let weightData=JSON.parse(localStorage.getItem('weightData')||'{"jose":[],"gabriela":[]}'); // synced via Firebase
 function saveShop(){cloudSet('shopChecked', shopChecked);}
@@ -729,7 +790,6 @@ function setPersona(p,el){
   const d=DATA[persona][diet];
   document.getElementById('qs-kcal').textContent=d.kcal;
   document.getElementById('qs-agua').textContent=d.agua;
-  document.getElementById('qs-aguasub').textContent=d.aguaSub;
   buildCalendar();
 }
 
@@ -755,7 +815,6 @@ function setDiet(d,el){
   const d2=DATA[persona][diet];
   document.getElementById('qs-kcal').textContent=d2.kcal;
   document.getElementById('qs-agua').textContent=d2.agua;
-  document.getElementById('qs-aguasub').textContent=d2.aguaSub;
   buildCalendar();
 }
 function setWeek(w,el){
@@ -942,29 +1001,33 @@ function fmtDate(s){return new Date(s+'T12:00:00').toLocaleDateString('es-ES',{d
 
 function renderShop(){
   const body=document.getElementById('shop-body');body.innerHTML='';
-  const total=SHOP_CATS.reduce((a,c)=>a+c.items.length,0);
+  // Shop has its own diet selector stored separately
+  const shopDiet=localStorage.getItem('shopDiet')||'completa';
+  const shopList=shopDiet==='estricta'?SHOP_CATS_ESTRICTA:SHOP_CATS_COMPLETA;
+  const total=shopList.reduce((a,c)=>a+c.items.length,0);
   const checked=Object.values(shopChecked).filter(Boolean).length;
   const pct=Math.round(checked/total*100);
   const prog=document.createElement('div');prog.style.paddingTop='14px';
-  prog.innerHTML=`<div class="shop-progress"><div class="sp-bar-bg"><div class="sp-bar-fill" style="width:${pct}%"></div></div><div class="sp-pct">${pct}%</div></div>`;
+  prog.innerHTML=`<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--neon);margin-bottom:8px;font-family:'Space Grotesk',sans-serif">${diet==='estricta'?'Dieta estricta':'Dieta completa'}</div><div class="shop-progress"><div class="sp-bar-bg"><div class="sp-bar-fill" style="width:${pct}%"></div></div><div class="sp-pct">${pct}%</div></div>`;
   body.appendChild(prog);
-  SHOP_CATS.forEach(cat=>{
+  shopList.forEach(cat=>{
     const sec=document.createElement('div');sec.className='shop-cat';
     sec.innerHTML=`<div class="shop-cat-title">${cat.name}</div>`;
     const itemsDiv=document.createElement('div');itemsDiv.className='shop-items';
     cat.items.forEach(item=>{
       const key=`${cat.name}::${item.n}`;
-      const isChecked=!!shopChecked[key];
+      const sc2=shopDiet==='estricta'?JSON.parse(localStorage.getItem('shopCheckedEstricta')||'{}'):shopChecked;
+      const isChecked=!!sc2[key];
       const el=document.createElement('div');
       el.className='shop-item'+(isChecked?' checked':'');
       el.innerHTML=`<div class="si-check"><svg viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12"/></svg></div><span class="si-name">${item.n}</span><span class="si-qty">${item.q}</span>`;
-      el.onclick=()=>{shopChecked[key]=!shopChecked[key];saveShop();renderShop();};
+      el.onclick=()=>{if(diet==='estricta'){const sc=JSON.parse(localStorage.getItem('shopCheckedEstricta')||'{}');sc[key]=!sc[key];localStorage.setItem('shopCheckedEstricta',JSON.stringify(sc));cloudSet('shopCheckedEstricta',sc);}else{shopChecked[key]=!shopChecked[key];saveShop();}renderShop();};
       itemsDiv.appendChild(el);
     });
     sec.appendChild(itemsDiv);body.appendChild(sec);
   });
   const rb=document.createElement('button');rb.className='shop-reset-btn';rb.textContent='🔄 Desmarcar todo';
-  rb.onclick=()=>{shopChecked={};saveShop();renderShop();};
+  rb.onclick=()=>{if(diet==='estricta'){localStorage.setItem('shopCheckedEstricta','{}');cloudSet('shopCheckedEstricta',{});}else{shopChecked={};saveShop();}renderShop();};
   body.appendChild(rb);
   const sp=document.createElement('div');sp.style.height='10px';body.appendChild(sp);
 }
@@ -972,7 +1035,6 @@ function renderShop(){
 buildCalendar();
 document.getElementById('qs-kcal').textContent=DATA[persona][diet].kcal;
 document.getElementById('qs-agua').textContent=DATA[persona][diet].agua;
-document.getElementById('qs-aguasub').textContent=DATA[persona][diet].aguaSub;
 // hide week 3 tab initially not needed
 document.querySelectorAll('.week-tabs .wtab')[2] && (document.querySelectorAll('.week-tabs .wtab')[2].style.display='');
 
@@ -1106,6 +1168,176 @@ function fmtApptDate(dt){
 function fmtApptTime(dt){
   return dt.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
 }
+
+// ══ WATER TRACKER ══
+const WATER_GOALS = {jose: 2500, gabriela: 2000}; // ml
+let waterData = JSON.parse(localStorage.getItem('waterData')||'{"jose":[],"gabriela":[]}');
+function saveWater(){localStorage.setItem('waterData',JSON.stringify(waterData));cloudSet('waterData',waterData);}
+
+function getTodayKey(){return new Date().toISOString().slice(0,10);}
+
+function getTodayMl(person){
+  const today=getTodayKey();
+  const entries=(waterData[person]||[]).filter(e=>e.date===today);
+  return entries.reduce((a,e)=>a+e.ml,0);
+}
+
+function addWater(person, ml){
+  const today=getTodayKey();
+  if(!waterData[person]) waterData[person]=[];
+  waterData[person].push({date:today, ml, time:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})});
+  saveWater();
+  renderWater();
+  updateWaterBtn();
+}
+
+function resetWater(person){
+  const today=getTodayKey();
+  waterData[person]=(waterData[person]||[]).filter(e=>e.date!==today);
+  saveWater();
+  renderWater();
+  updateWaterBtn();
+}
+
+function updateWaterBtn(){
+  const jml=getTodayMl('jose');
+  const gml=getTodayMl('gabriela');
+  const jgoal=WATER_GOALS['jose'];
+  const ggoal=WATER_GOALS['gabriela'];
+  const jpct=Math.min(100,Math.round(jml/jgoal*100));
+  const gpct=Math.min(100,Math.round(gml/ggoal*100));
+  // Update QS water card based on current persona
+  const pml=persona==='jose'?jml:gml;
+  const pgoal=persona==='jose'?jgoal:ggoal;
+  const ppct=Math.min(100,Math.round(pml/pgoal*100));
+  const bar=document.getElementById('qs-agua-bar');
+  if(bar){
+    bar.style.width=ppct+'%';
+    bar.style.background=ppct>=100?'linear-gradient(90deg,var(--green),#06d6a0)':'linear-gradient(90deg,var(--blue),var(--purple))';
+  }
+  const sub=document.getElementById('qs-aguasub');
+  if(sub){
+    if(ppct>=100) sub.textContent='¡Objetivo cumplido! 🎉';
+    else sub.textContent=`${(pml/1000).toFixed(2)} L de ${(pgoal/1000).toFixed(1)} L`;
+    sub.style.color=ppct>=100?'var(--green)':'var(--text3)';
+  }
+}
+
+function renderWater(){
+  const body=document.getElementById('water-modal-body');
+  if(!body) return;
+  body.innerHTML='';
+  const today=getTodayKey();
+  const jml=getTodayMl('jose');
+  const gml=getTodayMl('gabriela');
+  const jgoal=WATER_GOALS['jose'];
+  const ggoal=WATER_GOALS['gabriela'];
+  const jpct=Math.min(100,Math.round(jml/jgoal*100));
+  const gpct=Math.min(100,Math.round(gml/ggoal*100));
+  const jwins=jml>=gml&&jml>0;
+  const gwins=gml>jml&&gml>0;
+
+  // Competition cards (both always visible at top)
+  const compWrap=document.createElement('div');
+  compWrap.style.paddingTop='14px';
+  compWrap.innerHTML=`<div class="water-compete">
+    <div class="wc-card ${jwins?'winning':''}" onclick="setWaterPersona('jose')" style="cursor:pointer;border:1.5px solid ${waterPersona==='jose'?'var(--neon)':'var(--border)'};box-shadow:${waterPersona==='jose'?'0 0 14px rgba(247,37,133,0.35)':'none'}">
+      ${jwins?'<div class="wc-crown">&#x1F451;</div>':'<div class="wc-crown" style="opacity:0">&#xB7;</div>'}
+      <img class="wc-avatar" src="${JOSE_IMG}" alt="Jose">
+      <div class="wc-name">Jose</div>
+      <div class="wc-amount ${jpct>=100?'done':''}">${(jml/1000).toFixed(2)}L</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">objetivo ${(jgoal/1000).toFixed(1)}L</div>
+      <div class="wc-prog"><div class="wc-prog-fill ${jpct>=100?'done':''}" style="width:${jpct}%"></div></div>
+      <div style="font-size:10px;font-weight:700;color:${jpct>=100?'var(--green)':'var(--text3)'};margin-top:4px">${jpct}%</div>
+    </div>
+    <div class="wc-card ${gwins?'winning':''}" onclick="setWaterPersona('gabriela')" style="cursor:pointer;border:1.5px solid ${waterPersona==='gabriela'?'var(--neon)':'var(--border)'};box-shadow:${waterPersona==='gabriela'?'0 0 14px rgba(247,37,133,0.35)':'none'}">
+      ${gwins?'<div class="wc-crown">&#x1F451;</div>':'<div class="wc-crown" style="opacity:0">&#xB7;</div>'}
+      <img class="wc-avatar" src="${GABBI_IMG}" alt="Gabriela">
+      <div class="wc-name">Gabriela</div>
+      <div class="wc-amount ${gpct>=100?'done':''}">${(gml/1000).toFixed(2)}L</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">objetivo ${(ggoal/1000).toFixed(1)}L</div>
+      <div class="wc-prog"><div class="wc-prog-fill ${gpct>=100?'done':''}" style="width:${gpct}%"></div></div>
+      <div style="font-size:10px;font-weight:700;color:${gpct>=100?'var(--green)':'var(--text3)'};margin-top:4px">${gpct}%</div>
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);text-align:center;margin:6px 0 14px">Toca una tarjeta para registrar tu agua</div>`;
+  body.appendChild(compWrap);
+
+  // Only show detail for selected water persona
+  const p=waterPersona||'jose';
+  const pml=p==='jose'?jml:gml;
+  const pgoal=p==='jose'?jgoal:ggoal;
+  const ppct=Math.min(100,Math.round(pml/pgoal*100));
+  const done=ppct>=100;
+  const todayEntries=(waterData[p]||[]).filter(e=>e.date===today);
+
+  const card=document.createElement('div');
+  card.className='water-banner';
+  card.style.borderColor=done?'rgba(6,214,160,0.4)':'rgba(76,201,240,0.3)';
+  card.style.background=done?'linear-gradient(135deg,rgba(6,214,160,0.12),rgba(6,214,160,0.06))':'linear-gradient(135deg,rgba(76,201,240,0.12),rgba(123,47,247,0.12))';
+  card.innerHTML=`
+    <div class="water-banner-label">${p==='jose'?'&#x1F9D1; Jose':'&#x1F469; Gabriela'}</div>
+    <div class="water-goal ${done?'done':''}">${(pml/1000).toFixed(2)} L ${done?'&#x2705;':''}</div>
+    <div class="water-sub">objetivo: ${(pgoal/1000).toFixed(1)} L/día</div>
+    <div class="water-prog-wrap">
+      <div class="water-prog-bg"><div class="water-prog-fill ${done?'done':''}" style="width:${ppct}%"></div></div>
+      <div class="water-pct ${done?'done':''}">${ppct}%</div>
+    </div>
+    <div class="water-btns">
+      <div class="water-btn" onclick="addWater('${p}',250)"><div class="water-btn-ico">&#x1F964;</div><div class="water-btn-label">+250 ml</div><div class="water-btn-sub">vaso pequeño</div></div>
+      <div class="water-btn" onclick="addWater('${p}',350)"><div class="water-btn-ico">&#x1F95B;</div><div class="water-btn-label">+350 ml</div><div class="water-btn-sub">vaso grande</div></div>
+      <div class="water-btn" onclick="addWater('${p}',750)"><div class="water-btn-ico">&#x1F376;</div><div class="water-btn-label">+750 ml</div><div class="water-btn-sub">botella pequeña</div></div>
+      <div class="water-btn" onclick="addWater('${p}',1000)"><div class="water-btn-ico">&#x1FAD9;</div><div class="water-btn-label">+1 L</div><div class="water-btn-sub">botella grande</div></div>
+    </div>
+    ${todayEntries.length?`<div class="water-log-title">Registros de hoy</div>
+    <div class="water-log-items">${todayEntries.map(e=>`<div class="water-log-item">${e.ml>=1000?(e.ml/1000)+'L':e.ml+'ml'} &middot; ${e.time}</div>`).join('')}</div>`:''}
+    <button class="water-reset" onclick="resetWater('${p}')">&#x1F504; Resetear ahora &nbsp;·&nbsp; Pr&#xF3;ximo reset a las 00:00</button>`;
+  body.appendChild(card);
+
+  const sp=document.createElement('div');sp.style.height='10px';body.appendChild(sp);
+  updateWaterBtn();
+}
+
+let waterPersona='jose';
+function setWaterPersona(p){
+  waterPersona=p;
+  renderWater();
+}
+
+
+function setShopDiet(d){
+  localStorage.setItem('shopDiet',d);
+  renderShop();
+}
+
+function openWaterModal(){
+  const modal=document.getElementById('water-modal');
+  modal.style.display='flex';
+  renderWater();
+}
+function closeWaterModal(){
+  document.getElementById('water-modal').style.display='none';
+}
+
+// ── MIDNIGHT WATER RESET CHECK ──
+function checkMidnightReset(){
+  const today=getTodayKey();
+  const lastDay=localStorage.getItem('waterLastDay');
+  if(lastDay && lastDay !== today){
+    // New day - old data stays for history but today starts fresh (filtered by date already)
+    console.log('New day detected, water tracker resets for today');
+  }
+  localStorage.setItem('waterLastDay', today);
+  // Schedule next check at midnight
+  const now=new Date();
+  const msUntilMidnight=(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5)-now);
+  setTimeout(()=>{
+    checkMidnightReset();
+    updateWaterBtn();
+    if(document.getElementById('water-modal').style.display==='flex') renderWater();
+  }, msUntilMidnight);
+}
+checkMidnightReset();
 </script>
 </body>
 </html>
