@@ -350,6 +350,26 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
 .surprise-body strong{color:var(--text)}
 .surprise-new-btn{margin-top:12px;width:100%;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-sm);padding:10px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
 .surprise-new-btn:hover{border-color:var(--purple);color:var(--text)}
+/* ── RECETA MODAL ── */
+.receta-overlay{position:absolute;inset:0;z-index:300;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);display:none;flex-direction:column;justify-content:flex-end}
+.receta-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-height:92dvh;overflow-y:auto;padding-bottom:30px}
+.receta-hdr{position:sticky;top:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 22px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.receta-hdr-info{flex:1}
+.receta-hdr-title{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;color:var(--text);line-height:1.2}
+.receta-hdr-meta{font-size:12px;color:var(--text2);margin-top:4px}
+.receta-close{background:var(--card2);border:1px solid var(--border2);border-radius:50%;width:34px;height:34px;color:var(--text2);font-size:16px;cursor:pointer;flex-shrink:0;font-family:'Outfit',sans-serif}
+.receta-body{padding:16px 22px 0}
+.receta-sec{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--neon);margin:16px 0 8px;font-family:'Space Grotesk',sans-serif}
+.receta-ing-list{display:flex;flex-direction:column;gap:5px;margin-bottom:4px}
+.receta-ing{font-size:14px;color:var(--text);padding:7px 12px;background:var(--card);border-radius:var(--r-sm);border-left:3px solid var(--purple)}
+.receta-paso{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+.receta-paso-num{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--neon),var(--purple));color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Grotesk',sans-serif}
+.receta-paso-txt{font-size:14px;color:var(--text2);line-height:1.6;padding-top:3px}
+.receta-paso-txt strong{color:var(--text)}
+.receta-tip{background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.25);border-radius:var(--r-sm);padding:10px 14px;margin-top:12px;font-size:13px;color:var(--amber);line-height:1.5}
+.mc-body.clickable{cursor:pointer;border-radius:var(--r-sm);transition:background .15s}
+.mc-body.clickable:active{background:rgba(247,37,133,0.08)}
+.receta-hint{font-size:10px;color:var(--neon);font-weight:600;letter-spacing:.5px;margin-top:6px;opacity:.8}
 .tips-divider{height:1px;background:var(--border);margin:20px 22px 0}
 .tips-section-hdr{padding:16px 22px 0;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:'Space Grotesk',sans-serif}
 
@@ -649,6 +669,20 @@ html,body{height:100%;background:var(--bg);font-family:'Outfit',sans-serif;color
     <div id="water-modal-body" style="padding:16px 22px 0"></div>
   </div>
 </div>
+
+<!-- ══ RECETA MODAL ══ -->
+<div id="receta-overlay" class="receta-overlay">
+  <div class="receta-sheet">
+    <div class="receta-hdr">
+      <div class="receta-hdr-info">
+        <div class="receta-hdr-title" id="receta-titulo"></div>
+        <div class="receta-hdr-meta" id="receta-meta"></div>
+      </div>
+      <button class="receta-close" onclick="closeReceta()">✕</button>
+    </div>
+    <div class="receta-body" id="receta-body"></div>
+  </div>
+</div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -871,7 +905,7 @@ const SHOP_CATS=SHOP_CATS_COMPLETA;
 let persona=localStorage.getItem('nutriplan_persona')||'jose';
 const diet='completa';
 let week=1;
-let weightPersona='jose';
+let weightPersona=localStorage.getItem('nutriplan_persona')||'jose';
 let currentDay=null;
 let currentScreen='home';
 let weightChart=null;
@@ -894,7 +928,7 @@ function nav(screen){
 }
 
 function setPersona(p,el){
-  persona=p;
+  persona=p; weightPersona=p; waterPersona=p;
   localStorage.setItem('nutriplan_persona',p);
   document.querySelectorAll('#home-pills .ppill').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
@@ -911,14 +945,33 @@ function setWeek(w,el){
   buildCalendar();
 }
 function setWeightPersona(p,el){
-  weightPersona=p;
+  persona=p; weightPersona=p; waterPersona=p;
+  localStorage.setItem('nutriplan_persona',p);
   document.querySelectorAll('#weight-pills .ppill').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
+  // Sincronizar pills del home
+  document.querySelectorAll('#home-pills .ppill').forEach((x,i)=>{x.classList.toggle('active', (i===0&&p==='jose')||(i===1&&p==='gabriela'));});
   renderWeight();
 }
 
-function toggleDone(idx){
-  const doneKey='daysDone_'+persona;
+function toggleDone(idx){ toggleDoneBoth(idx); }
+function toggleDoneBoth(idx){
+  const jDone=JSON.parse(localStorage.getItem('daysDone_jose')||'[]');
+  const gDone=JSON.parse(localStorage.getItem('daysDone_gabriela')||'[]');
+  const bothDone=jDone.includes(idx)&&gDone.includes(idx);
+  ['jose','gabriela'].forEach(p=>{
+    const doneKey='daysDone_'+p;
+    const done=JSON.parse(localStorage.getItem(doneKey)||'[]');
+    if(bothDone){ const pos=done.indexOf(idx); if(pos>=0) done.splice(pos,1); }
+    else { if(!done.includes(idx)) done.push(idx); }
+    localStorage.setItem(doneKey,JSON.stringify(done));
+    cloudSet(doneKey,done);
+  });
+  buildCalendar();
+  openDay(idx);
+}
+function toggleDonePersona(idx, p, btn){
+  const doneKey='daysDone_'+p;
   const done=JSON.parse(localStorage.getItem(doneKey)||'[]');
   const pos=done.indexOf(idx);
   if(pos>=0) done.splice(pos,1);
@@ -926,7 +979,12 @@ function toggleDone(idx){
   localStorage.setItem(doneKey,JSON.stringify(done));
   cloudSet(doneKey,done);
   buildCalendar();
-  openDay(idx);
+  if(btn){
+    const isDone=done.includes(idx);
+    btn.className='mark-done-btn '+(isDone?'done':'undone');
+    const name=p==='jose'?'👨 Jose':'👩 Gabbi';
+    btn.textContent=isDone?`✓ ${name} — día completado`:`Marcar día de ${name} como completado ✓`;
+  }
 }
 
 function buildCalendar(){
@@ -951,52 +1009,108 @@ function buildCalendar(){
 
 function openDay(idx){
   currentDay=idx;
-  const day=DATA[persona][diet].days[idx];
-  const d=DATA[persona][diet];
+  const jDay=DATA.jose[diet].days[idx];
+  const gDay=DATA.gabriela[diet].days[idx];
+  const jD=DATA.jose[diet];
+  const gD=DATA.gabriela[diet];
   const lbls=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   document.getElementById('det-title').textContent=`Día ${idx+1} — ${lbls[idx%7]}`;
-  document.getElementById('det-sub').textContent=`Dieta completa · ${persona==='jose'?'Jose':'Gabbi'}`;
-  document.getElementById('det-libre').innerHTML=day.libre?'<span class="libre-badge">🎉 Día libre incluido</span>':'';
+  document.getElementById('det-sub').textContent='Dieta completa · Jose & Gabbi';
+  document.getElementById('det-libre').innerHTML=jDay.libre?'<span class="libre-badge">🎉 Día libre incluido</span>':'';
   const body=document.getElementById('day-body');
   body.innerHTML='';
   const maxDay=14;
   const fixedNav=document.getElementById('day-nav-fixed');
   if(fixedNav){fixedNav.style.padding='10px 22px';fixedNav.innerHTML=`<button class="dnav-btn" ${idx===0?'disabled':''} onclick="openDay(${idx-1})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Día ${idx}</button><button class="dnav-btn" ${idx===maxDay?'disabled':''} onclick="openDay(${idx+1})">Día ${idx+2} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>`;}
-  const meals=[
-    {ico:'☀️',cls:'des',lbl:'Desayuno',txt:d.desayuno},
-    {ico:'🥪',cls:'alm',lbl:'Almuerzo',txt:day.alm},
-    {ico:'🍽️',cls:'com',lbl:'Comida principal',txt:day.com},
-    {ico:'🍎',cls:'mer',lbl:'Merienda',txt:day.mer},
-    {ico:'🌙',cls:'cen',lbl:'Cena',txt:day.cen},
-    {ico:'🍮',cls:'pos',lbl:'Postre',txt:`Comida: ${d.postComida} · Cena: ${d.postCena}`},
-  ];
-  meals.forEach(m=>{
+
+  // Helper: renderiza una tarjeta mostrando ambos o uno si son iguales
+  function mealCard(ico, cls, lbl, jTxt, gTxt){
     const c=document.createElement('div');
-    c.className=`meal-card ${m.cls}`;
-    c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${m.ico}</div><div class="mc-lbl">${m.lbl}</div></div><div class="mc-body">${m.txt}</div>`;
-    body.appendChild(c);
-  });
-  if(day.nota){
+    c.className=`meal-card ${cls}`;
+    const same = jTxt===gTxt;
+    const hasRecipe = lbl!=='Postre' && findReceta(jTxt);
+    const clickAttr = hasRecipe ? `onclick="openReceta(this.dataset.txt)" data-txt="${jTxt.replace(/"/g,'&quot;')}" style="cursor:pointer"` : '';
+    const hint = hasRecipe ? `<div class="receta-hint">👆 toca para ver la receta</div>` : '';
+    if(same){
+      c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${ico}</div><div class="mc-lbl">${lbl}</div></div><div class="mc-body" ${clickAttr}>${jTxt}${hint}</div>`;
+    } else {
+      const hasRecipeG = findReceta(gTxt);
+      const clickAttrG = hasRecipeG ? `onclick="openReceta(this.dataset.txt)" data-txt="${gTxt.replace(/"/g,'&quot;')}" style="cursor:pointer"` : '';
+      const hintG = hasRecipeG ? `<div class="receta-hint">👆 toca para ver la receta</div>` : '';
+      c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${ico}</div><div class="mc-lbl">${lbl}</div></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-left:8px">
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--neon);margin-bottom:4px;font-family:'Space Grotesk',sans-serif">👨 Jose</div>
+            <div class="mc-body" style="padding-left:0" ${clickAttr}>${jTxt}${hint}</div>
+          </div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin-bottom:4px;font-family:'Space Grotesk',sans-serif">👩 Gabbi</div>
+            <div class="mc-body" style="padding-left:0" ${clickAttrG}>${gTxt}${hintG}</div>
+          </div>
+        </div>`;
+    }
+    return c;
+  }
+
+  body.appendChild(mealCard('☀️','des','Desayuno', jD.desayuno, gD.desayuno));
+  body.appendChild(mealCard('🥪','alm','Almuerzo', jDay.alm, gDay.alm));
+  body.appendChild(mealCard('🍽️','com','Comida principal', jDay.com, gDay.com));
+  body.appendChild(mealCard('🍎','mer','Merienda', jDay.mer, gDay.mer));
+  body.appendChild(mealCard('🌙','cen','Cena', jDay.cen, gDay.cen));
+  body.appendChild(mealCard('🍮','pos','Postre',
+    `Comida: ${jD.postComida} · Cena: ${jD.postCena}`,
+    `Comida: ${gD.postComida} · Cena: ${gD.postCena}`));
+
+  if(jDay.nota){
     const nc=document.createElement('div');nc.className='meal-card';
     nc.style.borderColor='rgba(255,209,102,0.3)';
-    nc.innerHTML=`<div class="mc-body" style="color:var(--amber);padding-left:8px">💡 ${day.nota}</div>`;
+    nc.innerHTML=`<div class="mc-body" style="color:var(--amber);padding-left:8px">💡 ${jDay.nota}</div>`;
     body.appendChild(nc);
   }
 
+  // Cantidades: ambos en columnas
   const qc=document.createElement('div');qc.className='meal-card qty';
   qc.innerHTML=`<div class="mc-hdr"><div class="mc-ico">📏</div><div class="mc-lbl">Cantidades de referencia</div></div>
-    <div style="padding-left:8px"><div class="qty-sec-lbl">Comida</div>
-    ${d.qtyComida.map(r=>`<div class="qty-row"><span class="qty-lbl">${r[0]}</span><span class="qty-val">${r[1].split('·')[0].trim()}</span></div>`).join('')}
-    <div class="divider"></div><div class="qty-sec-lbl">Cena</div>
-    ${d.qtyCena.map(r=>`<div class="qty-row"><span class="qty-lbl">${r[0]}</span><span class="qty-val">${r[1].split('·')[0].trim()}</span></div>`).join('')}</div>`;
+    <div style="padding-left:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--neon);padding:6px 0 4px;font-family:'Space Grotesk',sans-serif">👨 Jose · Comida</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);padding:6px 0 4px;font-family:'Space Grotesk',sans-serif">👩 Gabbi · Comida</div>
+        ${jD.qtyComida.map((r,i)=>{const g=gD.qtyComida[i]||['',''];return `
+          <div class="qty-row" style="flex-direction:column;align-items:flex-start;border-bottom:none;padding:3px 0">
+            <span class="qty-lbl">${r[0]}</span>
+            <span class="qty-val">${r[1].split('·')[0].trim()}</span>
+          </div>
+          <div class="qty-row" style="flex-direction:column;align-items:flex-start;border-bottom:none;padding:3px 0">
+            <span class="qty-lbl">${g[0]}</span>
+            <span class="qty-val" style="color:var(--blue)">${g[1].split('·')[0].trim()}</span>
+          </div>`;}).join('')}
+      </div>
+      <div class="divider"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--neon);padding:4px 0;font-family:'Space Grotesk',sans-serif">👨 Jose · Cena</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue);padding:4px 0;font-family:'Space Grotesk',sans-serif">👩 Gabbi · Cena</div>
+        ${jD.qtyCena.map((r,i)=>{const g=gD.qtyCena[i]||['',''];return `
+          <div class="qty-row" style="flex-direction:column;align-items:flex-start;border-bottom:none;padding:3px 0">
+            <span class="qty-lbl">${r[0]}</span>
+            <span class="qty-val">${r[1].split('·')[0].trim()}</span>
+          </div>
+          <div class="qty-row" style="flex-direction:column;align-items:flex-start;border-bottom:none;padding:3px 0">
+            <span class="qty-lbl">${g[0]}</span>
+            <span class="qty-val" style="color:var(--blue)">${g[1].split('·')[0].trim()}</span>
+          </div>`;}).join('')}
+      </div>
+    </div>`;
   body.appendChild(qc);
-  const doneKey2='daysDone_'+persona;
-  const doneArr=JSON.parse(localStorage.getItem(doneKey2)||'[]');
-  const isDoneBool=doneArr.includes(idx);
+
+  // Botón único que marca el día para ambos
+  const jDone=JSON.parse(localStorage.getItem('daysDone_jose')||'[]').includes(idx);
+  const gDone=JSON.parse(localStorage.getItem('daysDone_gabriela')||'[]').includes(idx);
+  const bothDone=jDone&&gDone;
   const dbtn=document.createElement('button');
-  dbtn.className='mark-done-btn '+(isDoneBool?'done':'undone');
-  dbtn.textContent=isDoneBool?'✓ Día completado — toca para desmarcar':'Marcar día como completado ✓';
-  dbtn.onclick=()=>toggleDone(idx);
+  dbtn.className='mark-done-btn '+(bothDone?'done':'undone');
+  dbtn.textContent=bothDone?'✓ Día completado por los dos — toca para desmarcar':'Marcar día como completado ✓ (Jose & Gabbi)';
+  dbtn.onclick=()=>toggleDoneBoth(idx);
   body.appendChild(dbtn);
   body.scrollTop=0;
   nav('day');
@@ -1420,7 +1534,7 @@ function renderWater(){
   updateWaterBtn();
 }
 
-let waterPersona='jose';
+let waterPersona=localStorage.getItem('nutriplan_persona')||'jose';
 function setWaterPersona(p){
   waterPersona=p;
   renderWater();
@@ -1663,19 +1777,282 @@ function surpriseDish(){
         <strong>Preparación:</strong> ${plato.preparacion}
         ${plato.nota?`<br><br><em style="color:var(--amber)">💡 ${plato.nota}</em>`:''}
       </div>
+      <button class="surprise-new-btn" onclick="openReceta('',${JSON.stringify('')})" id="surprise-receta-btn" style="margin-bottom:8px;border-color:var(--purple);color:var(--purple)">📖 Ver receta completa</button>
       <button class="surprise-new-btn" onclick="surpriseDish()">🎲 Otro plato sorpresa</button>
     </div>`;
+    // Guardar receta del plato sorpresa para el botón
+    document.getElementById('surprise-receta-btn').onclick=()=>{
+      const r={n:plato.titulo,t:'~30 min',r:'2 personas',i:plato.ingredientes.split(',').map(x=>x.trim()),p:plato.preparacion.split('.').filter(x=>x.trim()).map(x=>x.trim()+'.'),tip:plato.nota||null};
+      const overlay=document.getElementById('receta-overlay');
+      document.getElementById('receta-titulo').textContent=r.n;
+      document.getElementById('receta-meta').textContent=`⏱ ${r.t} · 👥 ${r.r}`;
+      document.getElementById('receta-body').innerHTML=`
+        <div class="receta-sec">🛒 Ingredientes</div>
+        <div class="receta-ing-list">${r.i.map(x=>`<div class="receta-ing">${x}</div>`).join('')}</div>
+        <div class="receta-sec">👨‍🍳 Elaboración</div>
+        ${r.p.map((s,i)=>`<div class="receta-paso"><div class="receta-paso-num">${i+1}</div><div class="receta-paso-txt">${s}</div></div>`).join('')}
+        ${r.tip?`<div class="receta-tip">💡 <strong>Truco:</strong> ${r.tip}</div>`:''}
+        <div style="height:20px"></div>`;
+      overlay.style.display='flex';
+    };
     btn.classList.remove('loading');
     btn.disabled=false;
   },400);
 }
 
+// ══ BASE DE DATOS DE RECETAS ══
+const RECETAS={
+  arroz_pisto_pollo:{n:"Arroz con pisto de verduras y pollo a la plancha",t:"35 min",r:"2 personas",
+    i:["120g arroz (Jose) / 80g (Gabbi) en seco","1 calabacín mediano","1 cebolla","2 tomates o 4 cdas tomate frito","150g champiñones laminados","2 pechugas de pollo (200g c/u Jose / 125g Gabbi)","Aceite de oliva virgen extra, sal, sazonador"],
+    p:["Pon el arroz en agua hirviendo con sal. Cuece 18-20 min, escurre y reserva tapado.","Pica la cebolla en dados y sofríe con aceite a fuego medio 5 min hasta que quede transparente.","Añade el calabacín en dados y los champiñones laminados. Saltea 5-6 min.","Incorpora el tomate frito o los tomates troceados, salpimenta y cocina 8 min más.","Salpimienta el pollo y cocínalo en sartén bien caliente con spray de aceite, 4-5 min por lado hasta que esté dorado.","Sirve el arroz con el pisto por encima y el pollo al lado. Opcional: chorrito de AOVE al final."],
+    tip:"El pisto mejora de un día para otro — puedes hacerlo el día anterior."},
+  quinoa_ensalada:{n:"Ensalada templada de quinoa con espinacas y proteína",t:"25 min",r:"2 personas",
+    i:["120g quinoa en seco (Jose) / 80g (Gabbi)","100g espinacas frescas","10 tomates cherry","1 cebolla morada","Jamón serrano (Jose) / jamón cocido (Gabbi) — 2 lonchas","2 huevos","Zumo de limón, AOVE, sal"],
+    p:["Enjuaga la quinoa con agua fría y cuécela en agua con sal 12-15 min hasta que se abra el germen. Escurre y deja templar.","Cuece los huevos 10 min desde agua fría. Pela bajo agua fría y parte en cuartos.","Corta los tomates cherry por la mitad y la cebolla morada en juliana fina.","Mezcla la quinoa templada con las espinacas (se marchitarán ligeramente con el calor), tomates y cebolla.","Añade el jamón troceado y los huevos cocidos.","Aliña con zumo de limón, AOVE y sal al gusto."],
+    tip:"La quinoa debe estar templada, no caliente ni fría, para que las espinacas se ablanden levemente sin perder color."},
+  macarrones_ternera:{n:"Macarrones con ternera picada y champiñones",t:"30 min",r:"2 personas",
+    i:["120g macarrones integrales (Jose) / de verduras (Gabbi)","300g carne picada de ternera","150g champiñones","1 cebolla","100ml tomate frito","Ajo, aceite, orégano, sal"],
+    p:["Cuece la pasta en abundante agua con sal según el tiempo del paquete. Escurre al dente.","Pica la cebolla y el ajo, sofríe con aceite 4 min.","Añade los champiñones laminados y saltea 3 min.","Incorpora la ternera picada, sube el fuego y saltea removiendo hasta que pierda el color rosado (5 min).","Añade el tomate frito, orégano, sal y pimienta. Reduce 5 min a fuego suave.","Mezcla la pasta con la salsa y sirve inmediatamente."],
+    tip:"Usar pasta integral o de verduras añade fibra sin cambiar el sabor."},
+  espaguetis_pavo:{n:"Espaguetis con pavo picado y salsa de tomate",t:"25 min",r:"2 personas",
+    i:["120g espaguetis (Jose) / 80g (Gabbi)","250g carne picada de pavo","100ml tomate frito","150g champiñones","Cebolla, ajo, orégano, aceite, sal"],
+    p:["Cuece los espaguetis en agua con sal según instrucciones. Escurre y reserva.","Sofríe cebolla y ajo picados en aceite 4 min.","Añade champiñones laminados y saltea 3 min.","Incorpora la carne de pavo picada y cocina removiendo 5 min hasta que quede suelta y dorada.","Añade el tomate frito, orégano, sal. Cocina 5 min a fuego suave.","Mezcla con la pasta y sirve con un chorrito de AOVE."],
+    tip:"El pavo picado es más magro que la ternera, ideal para dietas de adelgazamiento."},
+  macarrones_atun:{n:"Macarrones con champiñones y atún",t:"20 min",r:"2 personas",
+    i:["120g macarrones (Jose)","2 latas de atún al natural","150g champiñones","Cebolla, tomate frito, aceite, sal, orégano"],
+    p:["Cuece la pasta en agua salada. Escurre y reserva.","Sofríe cebolla picada en aceite 4 min.","Añade champiñones laminados y saltea 4 min.","Añade el tomate frito y orégano. Cocina 3 min.","Escurre el atún y añádelo a la sartén fuera del fuego para que no se seque.","Mezcla con la pasta y sirve."],
+    tip:"Añade el atún siempre al final, fuera del fuego, para que quede jugoso."},
+  macarrones_gambas:{n:"Macarrones con champiñones y gambas salteadas",t:"22 min",r:"2 personas",
+    i:["80g macarrones de verduras (Gabbi)","100g gambas peladas cocidas","150g champiñones","Cebolla, tomate frito, ajo, aceite, sal, perejil"],
+    p:["Cuece la pasta en agua salada. Escurre y reserva.","Sofríe cebolla y ajo picados en aceite 4 min.","Añade champiñones laminados y saltea 4 min.","Añade el tomate frito, sal y perejil. Cocina 3 min.","Incorpora las gambas y calienta 1 min — no más o quedan gomosas.","Mezcla con la pasta y sirve."],
+    tip:"Las gambas cocidas solo necesitan calentarse, no cocinarse de nuevo."},
+  caldo_fideos:{n:"Caldo de pollo casero con fideos y verduras",t:"40 min",r:"2 personas",
+    i:["2 contramuslos de pollo sin piel (200g Jose / 125g Gabbi)","60g fideos (Jose) / 40g (Gabbi)","1 zanahoria","1 puerro","1 rama de apio","Sal, laurel, pimienta en grano"],
+    p:["Coloca el pollo, la zanahoria, el puerro y el apio en una cazuela con agua fría (1,5L) y sal.","Añade una hoja de laurel y unos granos de pimienta. Lleva a ebullición.","Baja el fuego y cuece a fuego suave 30 min, desespumando si hace falta.","Retira el pollo y las verduras. Cuela el caldo si lo deseas o déjalo con trozos de verdura.","Añade los fideos al caldo hirviendo y cuece 4-5 min hasta que estén al dente.","Desmenuza el pollo con un tenedor y añádelo al caldo al servir."],
+    tip:"El caldo casero dura 3 días en la nevera. Puedes usar el sobrante como base para cremas."},
+  arroz_salmon_teriyaki:{n:"Arroz con salmón al natural y teriyaki",t:"25 min",r:"2 personas (Jose)",
+    i:["120g arroz en seco","2 latas de salmón al natural","8ml salsa teriyaki","Brócoli 150g (Jose) / espárragos (Gabbi)","Aceite de oliva, sal, sésamo opcional"],
+    p:["Cuece el arroz en agua con sal 18-20 min. Escurre y reserva.","Cuece el brócoli/espárragos al vapor o en agua hirviendo 5-6 min. Escurre y saltea en sartén con un poco de aceite 2 min.","Escurre el salmón de las latas y desmenúzalo suavemente.","Mezcla el arroz con las verduras en la sartén 1-2 min.","Incorpora el salmón desmenuzado y la salsa teriyaki. Mezcla con cuidado y apaga el fuego.","Sirve inmediatamente espolvoreado con sésamo si lo usas."],
+    tip:"La salsa teriyaki tiene mucho sabor — con 8ml es suficiente para no añadir calorías de más."},
+  arroz_esparragos_teriyaki:{n:"Arroz con espárragos y teriyaki",t:"22 min",r:"2 personas (Gabbi)",
+    i:["80g arroz en seco","150g espárragos verdes","1 lata salmón al natural","8ml salsa teriyaki","Aceite, sal"],
+    p:["Cuece el arroz en agua salada 18 min. Escurre y reserva.","Trocea los espárragos y saltéalos en sartén con un poco de aceite 4-5 min.","Añade la salsa teriyaki sobre los espárragos y mezcla 1 min.","Incorpora el arroz y el salmón escurrido y desmenuzado.","Mezcla todo bien y sirve."],
+    tip:"Si los espárragos son finos, 3-4 min de salteo son suficientes."},
+  pollo_horno_boniato:{n:"Pollo al horno con boniato en air fryer",t:"35 min",r:"2 personas",
+    i:["2 pechugas o contramuslos sin piel (200g Jose / 125g Gabbi)","300g boniato (150g c/u)","1 cebolla en gajos","Aceite, sazonador para aves, sal, ajo en polvo, pimentón"],
+    p:["Precalienta el horno a 200°C. Pela el boniato y córtalo en cuadrados de 2cm.","Aliña el boniato con aceite, sal y pimentón. Ponlo en el air fryer a 200°C durante 20-22 min, agitando a mitad.","Coloca el pollo y la cebolla en bandeja de horno. Aliña con aceite, sazonador, ajo en polvo y sal.","Hornea el pollo a 200°C durante 25-30 min (pechugas) o 35 min (contramuslos).","Comprueba que el pollo está bien hecho (sin partes rosadas al cortar).","Sirve el pollo con la cebolla caramelizada del horno y el boniato de air fryer."],
+    tip:"El boniato en air fryer queda mucho mejor que al horno: exterior crujiente e interior cremoso."},
+  berenjena_rellena:{n:"Berenjena rellena de ternera picada al horno",t:"45 min",r:"2 personas",
+    i:["2 berenjenas medianas","300g ternera picada (Jose) / 250g (Gabbi)","1 cebolla","1 calabacín pequeño","100ml tomate frito","Aceite, sal, orégano, queso rallado light opcional"],
+    p:["Parte las berenjenas por la mitad a lo largo. Haz cortes en la pulpa con un cuchillo sin llegar a la piel. Hornea a 190°C boca abajo 20 min.","Saca la pulpa con una cuchara, pícala y reserva. Reserva las 'barquitas'.","Sofríe la cebolla picada en aceite 4 min. Añade el calabacín en dados y la pulpa de berenjena. Saltea 5 min.","Añade la ternera picada y cocina removiendo hasta que pierda el color rosado. Agrega el tomate frito, orégano, sal y pimienta.","Rellena las barquitas de berenjena con la mezcla. Opcional: añade queso rallado por encima.","Hornea a 190°C 15 min más hasta que estén doradas."],
+    tip:"Las berenjenas precortadas absorben menos aceite y se hornean más rápido."},
+  fideos_chinos:{n:"Fideos chinos de arroz con gambas y huevo",t:"20 min",r:"2 personas",
+    i:["120g fideos de arroz (Jose) / 80g (Gabbi)","½ bolsa gambas cocidas peladas","1 huevo por persona","150g champiñones laminados","Espárragos trigueros","Salsa de soja, aceite de sésamo opcional, ajo"],
+    p:["Hidrata los fideos de arroz según el paquete (normalmente 5-8 min en agua caliente). Escurre y reserva.","En un wok o sartén grande, saltea el ajo picado con aceite a fuego fuerte 30 seg.","Añade los champiñones y espárragos troceados, saltea 3-4 min a fuego fuerte.","Incorpora los fideos escurridos y saltea 2 min.","Aparta hacia un lado, rompe los huevos y revuelve hasta que cuajen, luego mezcla con los fideos.","Añade las gambas y la salsa de soja. Mezcla y sirve inmediatamente."],
+    tip:"El secreto es el fuego fuerte y remover constantemente para que quede con textura de wok."},
+  albondigas_airfryer:{n:"Albóndigas en air fryer con patatas y pisto",t:"35 min",r:"2 personas",
+    i:["300g carne picada mixta o ternera (Jose) / 250g ternera (Gabbi)","1 huevo","Pan rallado, ajo, perejil, sal","300g patatas (150g c/u)","1 calabacín + 1 tomate + cebolla para el pisto"],
+    p:["Mezcla la carne con el huevo, 2 cdas de pan rallado, ajo y perejil picados, sal y pimienta. Forma bolas del tamaño de una nuez.","Cocina las albóndigas en el air fryer a 200°C durante 12-15 min, agitando a mitad.","Corta las patatas en cuadrados de 2cm, aliña con aceite y sal. Air fryer a 190°C 20 min.","Para el pisto: sofríe cebolla 4 min, añade calabacín y tomate en dados. Cocina 12 min a fuego medio.","Sirve las albóndigas sobre el pisto con las patatas de guarnición."],
+    tip:"El air fryer da a las albóndigas un exterior crujiente sin necesidad de freírlas en aceite."},
+  noquis_champi_pollo:{n:"Ñoquis con champiñones, calabacín y pollo",t:"20 min",r:"2 personas",
+    i:["300g ñoquis frescos (Jose) / 240g (Gabbi)","1 lata pollo al natural desmenuzado","150g champiñones","1 calabacín","Cebolla, ajo, aceite, sal, pimienta, albahaca"],
+    p:["Cuece los ñoquis en agua con sal según el paquete (suelen flotar cuando están listos, 2-3 min). Escurre y reserva.","Sofríe cebolla y ajo en aceite 3 min. Añade champiñones y calabacín en dados, saltea 5-6 min.","Incorpora el pollo al natural escurrido y desmenuzado, mezcla 1 min.","Añade los ñoquis a la sartén y saltea todo junto 2 min para que cojan sabor.","Salpimenta y añade albahaca fresca o seca al gusto."],
+    tip:"Los ñoquis no deben cocerse de más o se deshacen — en cuanto flotan, ya están listos."},
+  ensalada_proteica:{n:"Ensalada completa con proteína y huevo duro",t:"15 min",r:"2 personas",
+    i:["Lechuga variada","2 zanahorias ralladas","2 tomates o pepino","2 latas atún al natural (Jose) / 100g gambas (Gabbi)","2 huevos duros","AOVE, sal, vinagre o limón"],
+    p:["Cuece los huevos 10 min desde agua fría. Enfría bajo el grifo, pela y parte en cuartos.","Lava y seca bien la lechuga. Ralla las zanahorias.","Corta los tomates en gajos o el pepino en rodajas.","Escurre el atún / añade las gambas.","Monta la ensalada: base de lechuga, zanahoria, tomate/pepino, proteína y los huevos.","Aliña justo antes de servir con AOVE, sal y vinagre o zumo de limón."],
+    tip:"Para que aguante sin aguar, guarda el aliño aparte y pon el tomate encima al final."},
+  merluza_crema_esparragos:{n:"Merluza a la plancha con crema de espárragos",t:"25 min",r:"2 personas",
+    i:["300g merluza en filetes","1 manojo espárragos (o 200g)","1 puerro","120g patata (Jose) / 100g (Gabbi)","Caldo vegetal, aceite, sal, pimienta"],
+    p:["Pela y trocea la patata. Cuece junto con el puerro y los espárragos en 600ml de caldo 15 min.","Tritura todo con un batidor hasta obtener una crema fina. Añade un chorrito de aceite, sal y pimienta.","Seca bien los filetes de merluza con papel de cocina. Salpimienta.","Calienta una sartén antiadherente a fuego fuerte con spray de aceite.","Cocina la merluza 3-4 min por el lado de la piel hasta que esté dorada y crujiente, luego 2 min por el otro lado.","Sirve la crema caliente con los filetes encima."],
+    tip:"La clave de la merluza es secarla bien antes de plancharla para que quede dorada y no se deshaga."},
+  merluza_crema_puerro:{n:"Merluza a la plancha con crema de puerro y zanahoria",t:"25 min",r:"2 personas",
+    i:["300g merluza en filetes","2 puerros","2 zanahorias","120g patata (Jose) / 100g (Gabbi)","Caldo vegetal, aceite, sal, nuez moscada"],
+    p:["Trocea puerros, zanahorias y patata. Sofríe el puerro en aceite 3 min.","Añade zanahoria y patata, cubre con caldo y cuece 18 min.","Tritura hasta obtener crema lisa. Sazona con sal y nuez moscada.","Seca y salpimienta los filetes de merluza.","Plancha a fuego fuerte 3-4 min por el lado de la piel y 2 min por el otro.","Sirve la crema con la merluza encima y un hilo de aceite."],
+    tip:"La zanahoria da dulzor natural a la crema, equilibrando el sabor del puerro."},
+  salmon_teriyaki:{n:"Salmón a la plancha con espárragos y teriyaki",t:"15 min",r:"2 personas (Jose)",
+    i:["300g lomo de salmón en 2 porciones","150g espárragos trigueros","150g champiñones laminados","8ml salsa teriyaki","Aceite, sal, sésamo opcional"],
+    p:["Seca el salmón con papel de cocina y salpimienta ligeramente.","Saltea los espárragos y champiñones en sartén con aceite a fuego fuerte 4-5 min.","Añade la salsa teriyaki a las verduras, mezcla y reserva fuera del fuego.","En la misma sartén (limpia o nueva), pon el salmón con el lado de la piel hacia abajo. Cocina 4 min sin moverlo.","Da la vuelta y cocina 2-3 min más — el interior debe quedar levemente rosado.","Sirve el salmón sobre las verduras con teriyaki y espolvorea sésamo."],
+    tip:"No muevas el salmón durante los primeros 4 min — eso es lo que consigue una piel crujiente."},
+  emperador_plancha:{n:"Emperador a la plancha con guarnición",t:"15 min",r:"2 personas (Gabbi)",
+    i:["250g emperador en filetes (125g c/u)","Guarnición: espárragos / champiñones / crema de verduras según el día","Aceite, sal, pimienta, limón, sazonador"],
+    p:["Seca los filetes de emperador con papel de cocina.","Aliña con sal, pimienta y un poco de sazonador de pescado.","Calienta la plancha o sartén a fuego fuerte con un poco de aceite.","Cocina el emperador 3-4 min por cada lado — el pez espada es grueso y necesita más tiempo que la merluza.","Prepara la guarnición según el día: saltea las verduras en sartén o usa la crema indicada.","Sirve con un chorro de limón por encima."],
+    tip:"El emperador tiende a secarse — no lo cocines de más. Si está opaco por dentro, ya está listo."},
+  emperador_teriyaki:{n:"Emperador a la plancha con espárragos y teriyaki",t:"15 min",r:"2 personas (Gabbi)",
+    i:["250g emperador en filetes","150g espárragos","150g champiñones","8ml salsa teriyaki","Aceite, sal"],
+    p:["Saltea espárragos y champiñones en sartén con aceite a fuego fuerte 4-5 min.","Añade la salsa teriyaki, mezcla y reserva fuera del fuego.","Salpimienta el emperador y plancha 3-4 min por cada lado en sartén bien caliente.","Sirve el pescado sobre las verduras con teriyaki."],
+    tip:"La salsa teriyaki carameliza fácil — añádela fuera del fuego para evitar que se queme."},
+  sepia_champi_gambas:{n:"Sepia con champiñones, gambas, ajo y limón",t:"20 min",r:"2 personas",
+    i:["300g sepia limpia en tiras (Jose) / 250g (Gabbi)","125g gambas cocidas peladas","150g champiñones laminados","3 dientes de ajo","Perejil fresco, zumo de limón, aceite, sal"],
+    p:["Limpia bien la sepia si no lo está. Córtala en tiras o dados no demasiado pequeños.","Calienta una sartén grande a fuego fuerte. Cuando humee, añade un poco de aceite.","Saltea la sepia a fuego muy fuerte 2-3 min sin mover mucho — queremos que se dore, no que cueza.","Añade el ajo laminado y los champiñones. Saltea 3-4 min.","Incorpora las gambas, el perejil picado y el zumo de limón. Mezcla 1 min y apaga.","Rectifica de sal y sirve inmediatamente."],
+    tip:"La sepia necesita fuego muy fuerte y poco tiempo. Si la cocinas despacio suelta agua y queda correosa."},
+  pollo_esparragos_boniato:{n:"Pechuga de pollo a la plancha con espárragos y boniato",t:"30 min",r:"2 personas",
+    i:["2 pechugas de pollo (200g Jose / 125g Gabbi)","150g espárragos trigueros","150g champiñones","300g boniato (150g c/u)","Aceite, sal, ajo en polvo, sazonador"],
+    p:["Pela el boniato, córtalo en rodajas o cubos. Aliña con aceite, sal y pimentón. Air fryer 200°C 20 min agitando a mitad.","Abre las pechugas por la mitad para que queden más finas (se hacen más rápido y quedan más jugosas).","Salpimienta y cocina el pollo en sartén antiadherente a fuego medio-fuerte, 4-5 min por lado.","En otra sartén, saltea el ajo en aceite 30 seg, añade espárragos y champiñones. Saltea 5-6 min a fuego fuerte.","Sirve el pollo con el salteado de verduras y el boniato de guarnición."],
+    tip:"Abrir la pechuga por la mitad ('mariposa') reduce el tiempo de cocción y evita que quede seca por fuera."},
+  pollo_berenjena_boniato:{n:"Pollo a la plancha con berenjena y calabacín asados",t:"30 min",r:"2 personas",
+    i:["2 pechugas de pollo","1 berenjena mediana","1 calabacín","300g boniato","Aceite, sal, orégano, ajo en polvo"],
+    p:["Precalienta el air fryer a 200°C. Corta berenjena y calabacín en rodajas gruesas. Aliña con aceite, sal y orégano.","Asa las verduras en air fryer 15-18 min hasta que estén tiernas y doradas.","Pela el boniato, córtalo en cubos y ásalo en air fryer 20 min con sal y pimentón.","Salpimienta las pechugas y cocínalas en plancha a fuego medio-fuerte 4-5 min por lado.","Sirve el pollo acompañado de las verduras asadas y el boniato."],
+    tip:"Si no tienes air fryer, hornea las verduras y el boniato a 210°C durante 25-30 min en bandeja separada."},
+  lomo_pisto_calabacin:{n:"Lomo de cerdo a la plancha con pisto de calabacín",t:"25 min",r:"2 personas",
+    i:["2 filetes de lomo de cerdo (200g Jose / 125g Gabbi)","1 calabacín","1 cebolla","100ml tomate frito","Aceite, sal, orégano, pimentón"],
+    p:["Pica la cebolla y sofríe en aceite 5 min.","Añade el calabacín en dados y saltea 5-6 min hasta que esté tierno.","Incorpora el tomate frito, orégano y sal. Cocina 5 min a fuego suave.","Salpimienta los filetes de lomo y cocínalos en sartén muy caliente 3 min por lado (no más o quedan secos).","Sirve el lomo sobre el pisto con un hilo de aceite."],
+    tip:"El lomo de cerdo es muy magro — si se cocina de más se reseca. 3 min por lado a fuego fuerte es suficiente."},
+  lomo_pisto_berenjena:{n:"Lomo de cerdo con pisto de berenjena",t:"25 min",r:"2 personas",
+    i:["2 filetes de lomo de cerdo","1 berenjena","1 cebolla","100ml tomate frito","Aceite, sal, orégano, comino"],
+    p:["Pica la cebolla y sofríe 5 min en aceite.","Añade la berenjena en dados pequeños (sin pelar si la prefieres). Saltea 8-10 min hasta que quede bien tierna.","Añade el tomate frito, orégano, sal y comino. Cocina 5 min.","Cocina el lomo en sartén muy caliente 3 min por lado.","Sirve sobre el pisto de berenjena."],
+    tip:"La berenjena absorbe mucho aceite — añádela a la sartén ya caliente para que se dore antes de absorber."},
+  ternera_champi_crema:{n:"Ternera a la plancha con champiñones y crema de espárragos",t:"25 min",r:"2 personas",
+    i:["2 filetes de ternera magra (200g Jose / 125g Gabbi)","150g champiñones laminados","Ajo, perejil, aceite, sal, pimienta","200g espárragos, 100g patata, caldo para la crema"],
+    p:["Cuece espárragos y patata en caldo 15 min. Tritura y sazona.","Lamina el ajo y sofríe en aceite 1 min. Añade los champiñones y saltea a fuego fuerte 4-5 min.","Salpimienta los filetes de ternera y hazlos en plancha muy caliente: 2-3 min por lado para que queden al punto.","Retira la ternera y deja reposar 2 min antes de servir.","Sirve la ternera sobre la crema de espárragos con los champiñones al lado y perejil picado."],
+    tip:"Dejar reposar la carne 2 min tras la plancha hace que los jugos se redistribuyan y quede más jugosa."},
+  ternera_berenjena_boniato:{n:"Ternera a la plancha con berenjena, calabacín y boniato",t:"30 min",r:"2 personas",
+    i:["2 filetes de ternera magra","1 berenjena","1 calabacín","300g boniato","Aceite, sal, sazonador, limón opcional"],
+    p:["Corta berenjena y calabacín en rodajas. Pela el boniato y córtalo en cubos.","Asa las verduras en air fryer o plancha: boniato 20 min a 200°C, berenjena y calabacín 12-15 min.","Salpimienta la ternera y plancha a fuego muy fuerte, 2-3 min por lado al punto.","Deja reposar la carne 2 min.","Sirve la ternera con las verduras de guarnición y un chorrito de limón opcional."],
+    tip:"Ternera a la plancha no necesita marinado — sal, pimienta y fuego fuerte son suficientes."},
+  pisto_atun_huevo:{n:"Pisto de calabacín con atún y huevo a la plancha",t:"20 min",r:"2 personas",
+    i:["1 calabacín grande","1 cebolla","100ml tomate frito","1 lata atún al natural","2 huevos","30g pan integral","Aceite, sal, orégano"],
+    p:["Sofríe la cebolla picada en aceite 4 min. Añade calabacín en dados y saltea 6-8 min.","Incorpora el tomate frito y orégano. Cocina 5 min a fuego suave.","Escurre el atún y añádelo al pisto fuera del fuego. Mezcla.","Fríe o cocina los huevos a la plancha con poco aceite: yema blanda o a tu gusto.","Tuesta el pan y sirve todo junto."],
+    tip:"El pisto con atún y huevo es una cena rápida, completa y muy sabrosa con muy pocas calorías."},
+  tortilla_calabacin:{n:"Tortilla de calabacín con cebolla",t:"20 min",r:"2 personas",
+    i:["4 huevos (Jose) / 1 huevo + 100g claras (Gabbi)","1 calabacín grande","1 cebolla","Aceite, sal, pimienta"],
+    p:["Pela y ralla el calabacín o córtalo en láminas finas. Pica la cebolla.","Sofríe la cebolla en aceite 4 min. Añade el calabacín, sal y cocina 6-8 min hasta que esté tierno.","Bate los huevos/claras con sal. Añade el sofrito escurrido de aceite.","Calienta una sartén antiadherente con un poco de aceite. Vierte la mezcla y baja el fuego.","Cuaja 3-4 min, da la vuelta con un plato y cuaja 2-3 min más.","Deja reposar 2 min antes de servir."],
+    tip:"Escurrir bien el calabacín del aceite antes de mezclarlo con el huevo evita que la tortilla quede aceitosa."},
+  pizza_fajita:{n:"Pizza fajita: wrap con tomate, champiñones y jamón",t:"15 min",r:"2 personas",
+    i:["2 wraps/fajitas grandes","Tomate frito","150g champiñones laminados","Jamón cocido en lonchas","Mozzarella light rallada","Sazonador de pizza, orégano"],
+    p:["Precalienta el horno a 200°C o el air fryer a 180°C.","Saltea los champiñones en sartén con ajo y aceite 4 min. Escurre el exceso de líquido.","Extiende una capa de tomate frito sobre cada wrap.","Reparte los champiñones, el jamón cocido troceado y la mozzarella.","Espolvorea sazonador de pizza y orégano.","Hornea 8-10 min o air fryer 6-7 min hasta que la base esté crujiente y el queso fundido."],
+    tip:"Usar el air fryer en vez del horno hace la base mucho más crujiente en menos tiempo."},
+  perrito_pavo:{n:"Perrito caliente de pavo con ensalada",t:"10 min",r:"2 personas",
+    i:["2-4 longanizas de pavo","2 panecillos (pan thins para Gabbi)","Pepinillos en vinagre","Tomate picado","Kétchup zero","Ensalada de tomate con huevo duro"],
+    p:["Cuece las longanizas de pavo en agua hirviendo 5 min o en sartén sin aceite hasta que estén doradas.","Calienta los panecillos en tostadora o plancha 1-2 min.","Monta el perrito: pan + longaniza + pepinillos + tomate picado + kétchup zero.","Para la ensalada: rodajas de tomate + huevo duro cortado + sal + AOVE.","Sirve el perrito con la ensalada de acompañamiento."],
+    tip:"La longaniza de pavo es muy baja en grasa. En sartén sin aceite queda ligeramente dorada y más sabrosa."},
+  crema_calabacin:{n:"Crema de calabacín",t:"25 min",r:"2 personas",
+    i:["2 calabacines grandes","1 cebolla","1 puerro o 2 quesitos light (omitir si sin lactosa)","600ml caldo vegetal","Aceite, sal, pimienta, nuez moscada"],
+    p:["Pica la cebolla y el puerro. Sofríe en aceite 5 min.","Añade los calabacines troceados (sin pelar si son frescos). Sofríe 3 min.","Cubre con el caldo y cuece 15 min a fuego medio.","Tritura con batidora hasta obtener crema fina. Sazona con sal, pimienta y nuez moscada.","Añade un hilo de aceite de oliva antes de servir.","Para Jose: sin quesitos. Para Gabbi: puede añadir 1-2 quesitos light al triturar."],
+    tip:"Cuanto más fría esté la crema, más espesa queda. Si quieres más fina, añade caldo caliente al servir."},
+  crema_esparragos:{n:"Crema de espárragos y puerro",t:"25 min",r:"2 personas",
+    i:["1 manojo espárragos verdes (o blancos)","1 puerro","120g patata (Jose) / 100g (Gabbi)","600ml caldo vegetal","Aceite, sal, pimienta"],
+    p:["Limpia los espárragos y quita la parte dura del tallo.","Corta el puerro en rodajas y sofríe en aceite 4 min.","Añade espárragos troceados y patata pelada en cubos.","Cubre con caldo y cuece 15-18 min.","Tritura hasta obtener crema suave. Sazona.","Sirve con un hilo de aceite y reserva unas puntas de espárragos para decorar."],
+    tip:"Guardar unas puntas de espárragos enteras y saltearlas aparte para decorar hace el plato más vistoso."},
+  crema_puerro_zanahoria:{n:"Crema de puerro y zanahoria",t:"25 min",r:"2 personas",
+    i:["2 puerros","3 zanahorias","100g patata","600ml caldo vegetal","Aceite, sal, nuez moscada"],
+    p:["Lava y corta los puerros en rodajas. Pela y trocea zanahorias y patata.","Sofríe el puerro en aceite 4 min.","Añade zanahorias y patata. Cubre con caldo y cuece 20 min.","Tritura hasta obtener crema lisa y fina.","Sazona con sal y nuez moscada al gusto.","Sirve con un hilo de aceite y pimienta negra."],
+    tip:"Esta crema es más dulce que la de calabacín. Si queda muy espesa, añade un poco de caldo caliente."},
+  crema_calabacin_tortilla:{n:"Crema de calabacín y tortilla francesa",t:"25 min",r:"2 personas (día libre)",
+    i:["2 calabacines","1 cebolla","Caldo vegetal","2 huevos por persona","Queso havarti light (solo Gabbi)","Aceite, sal"],
+    p:["Haz la crema de calabacín: sofríe cebolla, añade calabacín troceado, cubre con caldo y cuece 15 min. Tritura.","Para la tortilla francesa: bate 2 huevos con sal por persona.","Para Jose: tortilla solo con huevo. Para Gabbi: coloca 1 loncha de queso havarti light en el centro.","Cuaja en sartén antiadherente a fuego medio, 2 min por lado.","Doblada como tortilla o enrollada, sirve junto a la crema."],
+    tip:"Cena ligera pero saciante para las noches de día libre."},
+  pan_tomate_jamon:{n:"Pan con tomate, AOVE y jamón",t:"5 min",r:"2 personas",
+    i:["60g pan (Jose) / 40g (Gabbi)","1 tomate maduro","AOVE (aceite de oliva virgen extra)","2 lonchas jamón serrano (Jose) / pechuga de pavo (Gabbi)","Sal"],
+    p:["Tuesta el pan si lo prefieres (opcional).","Frota el tomate maduro directamente sobre el pan o córtalo por la mitad y frota.","Aliña con un hilo de AOVE y una pizca de sal.","Coloca el jamón serrano o el pavo por encima.","Listo para servir."],
+    tip:"La calidad del tomate y el AOVE marca la diferencia en este desayuno tan sencillo."},
+  pan_aguacate:{n:"Pan con aguacate y proteína",t:"5 min",r:"2 personas",
+    i:["60g pan (Jose) / 40g (Gabbi)","30g aguacate maduro (aprox ¼ aguacate)","2 lonchas jamón serrano (Jose) / pechuga de pavo (Gabbi)","Sal, pimienta, limón opcional"],
+    p:["Tuesta el pan ligeramente.","Aplasta el aguacate con un tenedor con una pizca de sal y unas gotas de limón.","Extiende el aguacate sobre el pan.","Coloca el jamón o el pavo por encima.","Añade pimienta negra al gusto."],
+    tip:"30g de aguacate (¼ pieza) aportan grasas saludables sin exceder las calorías del desayuno."},
+  pan_atun:{n:"Pan con atún y aceitunas",t:"5 min",r:"2 personas (Jose)",
+    i:["60g pan","1 lata atún al natural","6-8 aceitunas","Tomate opcional","AOVE, sal"],
+    p:["Tuesta el pan si lo deseas.","Escurre bien el atún y desmenúzalo.","Coloca el atún sobre el pan.","Añade las aceitunas enteras o troceadas por encima.","Opcional: rodajas de tomate o un hilo de AOVE."],
+    tip:"El atún al natural tiene el mismo sabor que en aceite pero muchas menos calorías."},
+  yogur_platano:{n:"Yogur proteico con plátano y muesli",t:"3 min",r:"1 persona",
+    i:["1 yogur proteico","½ plátano","20g muesli sin azúcar (Jose) / 10g (Gabbi)","Canela en polvo","Opcional: cacahuete en polvo desgrasado, miel 5ml"],
+    p:["Vierte el yogur en un bol.","Corta el medio plátano en rodajas y colócalo encima.","Añade el muesli por encima.","Espolvorea canela al gusto.","Opcional: una cucharadita de cacahuete en polvo desgrasado y un toque de miel."],
+    tip:"El cacahuete en polvo desgrasado aporta proteína extra y sabor sin las calorías del cacahuete normal."},
+  tortitas_hummus:{n:"Tortitas de arroz con hummus y pechuga de pavo",t:"3 min",r:"1 persona",
+    i:["3 tortitas de arroz (Jose) / 2 (Gabbi)","2 cdas de hummus","2 lonchas de pechuga de pavo","Opcional: pepino en rodajas"],
+    p:["Coloca las tortitas en el plato.","Extiende una cucharada de hummus sobre cada tortita.","Coloca una loncha de pavo doblada encima.","Añade rodajas de pepino si lo deseas."],
+    tip:"El hummus aporta proteína vegetal y es mucho más nutritivo que la mantequilla o el queso de untar."},
+  batido_frutas:{n:"Batido de frutas con leche",t:"5 min",r:"1 persona",
+    i:["80g fresas o arándanos frescos/congelados","½ plátano","150ml leche desnatada sin lactosa (Jose) / leche desnatada (Gabbi)","Hielo opcional"],
+    p:["Lava las frutas.","Pon todos los ingredientes en el vaso de la batidora.","Tritura a máxima potencia 30-40 segundos hasta obtener textura lisa.","Sirve inmediatamente.","Puedes añadir hielo para que quede más frío y espeso."],
+    tip:"Los frutos congelados dan más cremosidad al batido sin necesitar hielo y conservan todos los nutrientes."}
+};
+
+function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function findReceta(txt){
+  const t=norm(txt);
+  if(t.includes('quinoa')) return RECETAS.quinoa_ensalada;
+  if(t.includes('macarron')&&t.includes('gambas')) return RECETAS.macarrones_gambas;
+  if(t.includes('macarron')&&t.includes('atun')) return RECETAS.macarrones_atun;
+  if(t.includes('macarron')&&(t.includes('ternera')||t.includes('picada'))) return RECETAS.macarrones_ternera;
+  if(t.includes('espagueti')&&t.includes('pavo')) return RECETAS.espaguetis_pavo;
+  if(t.includes('arroz')&&(t.includes('pisto')||t.includes('pollo'))) return RECETAS.arroz_pisto_pollo;
+  if(t.includes('arroz')&&t.includes('salmon')) return RECETAS.arroz_salmon_teriyaki;
+  if(t.includes('arroz')&&t.includes('esparrago')) return RECETAS.arroz_esparragos_teriyaki;
+  if(t.includes('arroz')&&t.includes('teriyaki')) return RECETAS.arroz_salmon_teriyaki;
+  if(t.includes('caldo')&&(t.includes('fideo')||t.includes('fideos'))) return RECETAS.caldo_fideos;
+  if(t.includes('pollo')&&t.includes('horno')) return RECETAS.pollo_horno_boniato;
+  if(t.includes('berenjena')&&(t.includes('rellen')||t.includes('picada'))) return RECETAS.berenjena_rellena;
+  if(t.includes('fideo')&&t.includes('chino')) return RECETAS.fideos_chinos;
+  if(t.includes('albondiga')) return RECETAS.albondigas_airfryer;
+  if(t.includes('noqui')||t.includes('ñoqui')) return RECETAS.noquis_champi_pollo;
+  if(t.includes('ensalada')) return RECETAS.ensalada_proteica;
+  if(t.includes('merluza')&&(t.includes('puerro')||t.includes('zanahoria'))) return RECETAS.merluza_crema_puerro;
+  if(t.includes('merluza')) return RECETAS.merluza_crema_esparragos;
+  if(t.includes('salmon')&&t.includes('teriyaki')) return RECETAS.salmon_teriyaki;
+  if(t.includes('salmon')) return RECETAS.salmon_teriyaki;
+  if(t.includes('emperador')&&t.includes('teriyaki')) return RECETAS.emperador_teriyaki;
+  if(t.includes('emperador')) return RECETAS.emperador_plancha;
+  if(t.includes('sepia')) return RECETAS.sepia_champi_gambas;
+  if(t.includes('pollo')&&t.includes('esparrago')&&t.includes('boniato')) return RECETAS.pollo_esparragos_boniato;
+  if(t.includes('pollo')&&(t.includes('berenjena')||t.includes('calabacin'))) return RECETAS.pollo_berenjena_boniato;
+  if(t.includes('lomo')&&t.includes('berenjena')) return RECETAS.lomo_pisto_berenjena;
+  if(t.includes('lomo')) return RECETAS.lomo_pisto_calabacin;
+  if(t.includes('ternera')&&(t.includes('berenjena')||t.includes('boniato'))) return RECETAS.ternera_berenjena_boniato;
+  if(t.includes('ternera')&&(t.includes('champi')||t.includes('crema'))) return RECETAS.ternera_champi_crema;
+  if(t.includes('pisto')&&t.includes('atun')) return RECETAS.pisto_atun_huevo;
+  if(t.includes('tortilla')&&(t.includes('calabacin')||t.includes('calabacín'))) return RECETAS.tortilla_calabacin;
+  if(t.includes('pizza')&&t.includes('fajita')) return RECETAS.pizza_fajita;
+  if(t.includes('perrito')) return RECETAS.perrito_pavo;
+  if(t.includes('crema')&&(t.includes('calabacin')||t.includes('calabacín'))&&t.includes('tortilla')) return RECETAS.crema_calabacin_tortilla;
+  if(t.includes('crema')&&(t.includes('calabacin')||t.includes('calabacín'))) return RECETAS.crema_calabacin;
+  if(t.includes('crema')&&t.includes('esparrago')) return RECETAS.crema_esparragos;
+  if(t.includes('crema')&&(t.includes('puerro')||t.includes('zanahoria'))) return RECETAS.crema_puerro_zanahoria;
+  if(t.includes('sepia')) return RECETAS.sepia_champi_gambas;
+  if(t.includes('pan')&&t.includes('aguacate')) return RECETAS.pan_aguacate;
+  if(t.includes('pan')&&(t.includes('atun')||t.includes('atún'))) return RECETAS.pan_atun;
+  if(t.includes('pan')&&(t.includes('jamon')||t.includes('jamón')||t.includes('tomate'))) return RECETAS.pan_tomate_jamon;
+  if(t.includes('tortita')&&t.includes('hummus')) return RECETAS.tortitas_hummus;
+  if(t.includes('yogur')&&(t.includes('platano')||t.includes('plátano'))) return RECETAS.yogur_platano;
+  if(t.includes('batido')) return RECETAS.batido_frutas;
+  return null;
+}
+
+function openReceta(txt, nombreOverride){
+  const receta=findReceta(txt);
+  const overlay=document.getElementById('receta-overlay');
+  const body=document.getElementById('receta-body');
+  if(!receta){
+    // Si no hay receta en la base de datos, muestra el texto del plato
+    document.getElementById('receta-titulo').textContent=nombreOverride||txt.substring(0,60);
+    document.getElementById('receta-meta').textContent='Descripción del plato';
+    body.innerHTML=`<div style="padding:20px 0;color:var(--text2);font-size:14px;line-height:1.6">${txt}</div>`;
+    overlay.style.display='flex'; return;
+  }
+  document.getElementById('receta-titulo').textContent=nombreOverride||receta.n;
+  document.getElementById('receta-meta').textContent=`⏱ ${receta.t} · 👥 ${receta.r}`;
+  body.innerHTML=`
+    <div class="receta-sec">🛒 Ingredientes</div>
+    <div class="receta-ing-list">${receta.i.map(x=>`<div class="receta-ing">${x}</div>`).join('')}</div>
+    <div class="receta-sec">👨‍🍳 Elaboración</div>
+    ${receta.p.map((s,i)=>`<div class="receta-paso"><div class="receta-paso-num">${i+1}</div><div class="receta-paso-txt">${s}</div></div>`).join('')}
+    ${receta.tip?`<div class="receta-tip">💡 <strong>Truco:</strong> ${receta.tip}</div>`:''}
+    <div style="height:20px"></div>`;
+  overlay.style.display='flex';
+}
+function closeReceta(){document.getElementById('receta-overlay').style.display='none';}
+
 initPin();
-// Restaurar persona guardada
+// Restaurar persona guardada en todas las pantallas
 if(persona==='gabriela'){
-  const pills=document.querySelectorAll('#home-pills .ppill');
-  pills.forEach(x=>x.classList.remove('active'));
-  pills[1].classList.add('active');
+  // Pills home
+  const homePills=document.querySelectorAll('#home-pills .ppill');
+  homePills.forEach(x=>x.classList.remove('active'));
+  homePills[1].classList.add('active');
+  // Pills peso
+  const wPills=document.querySelectorAll('#weight-pills .ppill');
+  if(wPills.length){wPills.forEach(x=>x.classList.remove('active'));wPills[1].classList.add('active');}
+  // Datos home
   const d=DATA['gabriela'][diet];
   document.getElementById('qs-kcal').textContent=d.kcal;
   document.getElementById('qs-agua').textContent=d.agua;
