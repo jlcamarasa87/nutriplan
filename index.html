@@ -1651,24 +1651,29 @@ Responde SOLO con este formato JSON (sin markdown):
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt})
     });
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
     const data=await resp.json();
+    if(!data.content) throw new Error('Sin contenido: '+JSON.stringify(data));
     const raw=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    const plato=JSON.parse(raw);
+    let plato;
+    try{ plato=JSON.parse(raw); }
+    catch(pe){ throw new Error('JSON inválido: '+raw.substring(0,120)); }
     resultDiv.style.display='block';
     resultDiv.innerHTML=`<div class="surprise-result">
-      <div class="surprise-badge">🎲 Plato sorpresa · ${plato.tipo}</div>
-      <div class="surprise-title">${plato.titulo}</div>
+      <div class="surprise-badge">🎲 Plato sorpresa · ${plato.tipo||'Plato'}</div>
+      <div class="surprise-title">${plato.titulo||'Plato sorpresa'}</div>
       <div class="surprise-body">
-        <strong>Ingredientes:</strong> ${plato.ingredientes}<br><br>
-        <strong>Preparación:</strong> ${plato.preparacion}
+        <strong>Ingredientes:</strong> ${plato.ingredientes||''}<br><br>
+        <strong>Preparación:</strong> ${plato.preparacion||''}
         ${plato.nota?`<br><br><em style="color:var(--amber)">💡 ${plato.nota}</em>`:''}
       </div>
       <button class="surprise-new-btn" onclick="surpriseDish()">🎲 Otro plato sorpresa</button>
     </div>`;
   } catch(e){
+    console.error('Surprise error:',e);
     resultDiv.style.display='block';
     resultDiv.innerHTML=`<div class="surprise-result" style="border-color:var(--neon)">
-      <div class="surprise-body" style="color:var(--text2)">No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo.</div>
+      <div class="surprise-body" style="color:var(--text2)">Error: ${e.message}</div>
     </div>`;
   }
   btn.classList.remove('loading');
