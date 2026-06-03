@@ -1646,14 +1646,10 @@ Responde SOLO con este formato JSON (sin markdown):
 {"titulo":"nombre del plato","tipo":"Comida o Cena","ingredientes":"lista breve con cantidades","preparacion":"2-3 frases máximo","nota":"tip de sabor opcional"}`;
 
   try {
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('https://nutriplan-api-tau.vercel.app/api/surprise',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:500,
-        messages:[{role:'user',content:prompt}]
-      })
+      body:JSON.stringify({prompt})
     });
     const data=await resp.json();
     const raw=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
