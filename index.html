@@ -1615,69 +1615,58 @@ function clearSearch(){
   doSearch('');
 }
 
-// ══ PLATO SORPRESA (con API Claude) ══
-async function surpriseDish(){
+// ══ PLATO SORPRESA (local, sin API) ══
+const PLATOS_SORPRESA=[
+  {titulo:"Pollo al limón con espárragos",tipo:"Comida",ingredientes:"2 pechugas de pollo (300g c/u), 200g espárragos verdes, 1 limón, ajo, aceite de oliva, sal, pimienta",preparacion:"Marinar el pollo con limón, ajo y aceite 15 min. Cocinar en sartén antiadherente 6 min por lado. Saltear espárragos con ajo y un chorrito de aceite 4 min.",nota:"El marinado con limón hace la pechuga muy jugosa"},
+  {titulo:"Merluza al horno con pisto",tipo:"Cena",ingredientes:"2 lomos de merluza (200g c/u), 1 calabacín, 1 pimiento rojo, 1 tomate, cebolla, aceite, sal",preparacion:"Sofreír las verduras en dados 10 min. Colocar el pescado encima del pisto en bandeja y hornear a 180°C 15 min.",nota:"Añadir unas alcaparras al pisto para un toque mediterráneo"},
+  {titulo:"Ensalada de lentejas con atún",tipo:"Comida",ingredientes:"200g lentejas cocidas, 2 latas de atún en agua, 1 pepino, tomate cherry, cebolla morada, vinagre, aceite",preparacion:"Mezclar todos los ingredientes fríos. Aliñar con vinagre de manzana y aceite de oliva. Servir fresco.",nota:"Proteína doble: legumbre + pescado, muy saciante"},
+  {titulo:"Tortilla de espinacas y champiñones",tipo:"Cena",ingredientes:"4 huevos, 150g espinacas frescas, 100g champiñones, cebolla, aceite de oliva, sal",preparacion:"Saltear cebolla y champiñones 5 min, añadir espinacas hasta que se reduzcan. Mezclar con huevo batido y cuajar en sartén a fuego medio.",nota:"Sin queso para Jose, igual de sabrosa"},
+  {titulo:"Dorada a la plancha con ensalada griega",tipo:"Cena",ingredientes:"2 doradas (350g c/u), tomate, pepino, aceituna negra, cebolla, aceite, orégano, limón",preparacion:"Marcar la dorada en plancha muy caliente 4 min por lado. Preparar la ensalada con todos los vegetales y aliñar con limón y orégano.",nota:"Sin feta para que sea apta sin lactosa"},
+  {titulo:"Pollo al curry con arroz integral",tipo:"Comida",ingredientes:"2 contramuslos de pollo sin piel (250g c/u), 160g arroz integral, leche de coco light, curry, cebolla, ajo, jengibre",preparacion:"Sofreír cebolla y ajo, añadir curry y jengibre. Incorporar pollo troceado y leche de coco. Cocer 20 min a fuego lento. Servir con arroz.",nota:"La leche de coco sustituye perfectamente los lácteos"},
+  {titulo:"Rape con gambas y verduras al vapor",tipo:"Comida",ingredientes:"400g rape en rodajas, 200g gambas peladas, brócoli, zanahoria, judías verdes, limón, aceite, sal",preparacion:"Cocer las verduras al vapor 8 min. Marcar el rape y las gambas en sartén con aceite de oliva 3 min por lado. Servir juntos con limón.",nota:"Plato muy completo y bajo en calorías"},
+  {titulo:"Sopa de verduras con pollo desmenuzado",tipo:"Cena",ingredientes:"1 pechuga de pollo (250g), zanahoria, apio, puerro, nabo, fideos finos, sal, laurel",preparacion:"Cocer el pollo con las verduras 30 min. Retirar el pollo y desmenuzarlo. Añadir fideos y cocer 5 min más. Incorporar el pollo al servir.",nota:"Reconfortante y muy baja en calorías"},
+  {titulo:"Bacalao con tomate y pimientos",tipo:"Comida",ingredientes:"400g bacalao desalado, tomate triturado, pimiento rojo y verde, cebolla, ajo, aceite, pimentón",preparacion:"Sofreír cebolla, ajo y pimientos 8 min. Añadir tomate y pimentón, cocer 10 min. Incorporar el bacalao y cocer 5 min más.",nota:"El pimentón ahumado le da un sabor excepcional"},
+  {titulo:"Pavo al horno con boniato y brócoli",tipo:"Comida",ingredientes:"2 filetes de pavo (200g c/u), 300g boniato, 200g brócoli, aceite, romero, ajo, sal",preparacion:"Asar el boniato en dados con aceite y romero 25 min a 200°C. Añadir el brócoli los últimos 10 min. Cocinar el pavo en sartén 4 min por lado.",nota:"El boniato asado tiene un dulzor natural delicioso"},
+  {titulo:"Ceviche de lubina",tipo:"Cena",ingredientes:"400g lubina fresca en dados, lima, limón, cebolla morada, cilantro, pepino, sal",preparacion:"Marinar el pescado con zumo de lima y limón 20 min hasta que quede cocido en ácido. Añadir cebolla morada, pepino y cilantro picado.",nota:"Perfecto para noches de verano, muy ligero"},
+  {titulo:"Garbanzos con espinacas y huevo pochado",tipo:"Comida",ingredientes:"400g garbanzos cocidos, 200g espinacas, 2 huevos, ajo, pimentón, comino, aceite, caldo",preparacion:"Saltear ajo con pimentón y comino, añadir espinacas y garbanzos con un poco de caldo. Cocer 5 min. Pochar los huevos y servir encima.",nota:"Plato completo con mucha fibra y proteína vegetal"},
+  {titulo:"Lubina al vapor con salsa verde",tipo:"Cena",ingredientes:"2 lubinas (300g c/u), perejil, ajo, limón, alcaparras, aceite, sal",preparacion:"Cocer la lubina al vapor 12 min. Triturar perejil, ajo, limón y alcaparras con aceite para la salsa verde. Servir el pescado con la salsa por encima.",nota:"La salsa verde da mucho sabor sin añadir calorías"},
+  {titulo:"Ternera magra con champiñones y cebolla",tipo:"Comida",ingredientes:"400g solomillo de ternera en tiras, 250g champiñones, 2 cebollas, ajo, aceite, pimienta negra, perejil",preparacion:"Saltear la cebolla hasta dorar. Añadir champiñones y ajo 5 min. Incorporar la ternera y saltear a fuego fuerte 3 min. Terminar con perejil.",nota:"Cortar la ternera muy fina para que se cocine rápido y quede tierna"},
+  {titulo:"Gazpacho con huevo duro y atún",tipo:"Cena",ingredientes:"1kg tomate maduro, pepino, pimiento verde, cebolla, ajo, aceite, vinagre, sal, 2 huevos duros, 2 latas de atún",preparacion:"Triturar todas las verduras con aceite y vinagre. Colar y enfriar. Servir con los huevos duros y el atún escurrido por encima.",nota:"Cena muy completa y refrescante, perfecta en verano"},
+  {titulo:"Conejo al ajillo con patata al horno",tipo:"Comida",ingredientes:"1 conejo troceado (800g), 1 cabeza de ajos, vino blanco, romero, tomillo, aceite, 300g patata",preparacion:"Dorar el conejo en cazuela con aceite y ajos enteros. Añadir vino blanco y hierbas, cocer tapado 35 min. Asar la patata en rodajas a 200°C 25 min.",nota:"El conejo es una de las carnes más magras que existen"},
+  {titulo:"Fideos con almejas",tipo:"Comida",ingredientes:"200g fideos nº2, 500g almejas, tomate, cebolla, ajo, pimentón, caldo de pescado, aceite, perejil",preparacion:"Sofreír cebolla y ajo, añadir tomate y pimentón. Incorporar fideos y caldo. Cocer 8 min y añadir almejas, tapar 3 min hasta que abran.",nota:"Las almejas aportan mucho hierro y proteína con pocas calorías"},
+  {titulo:"Ensalada de quinoa con pollo y aguacate",tipo:"Comida",ingredientes:"150g quinoa cocida, 200g pechuga de pollo a la plancha, 1 aguacate, maíz, pepino, lima, aceite",preparacion:"Cocer la quinoa y enfriar. Cortar el pollo en dados y el aguacate en láminas. Mezclar todo y aliñar con lima y aceite.",nota:"Aguacate con moderación, aporta grasas buenas"},
+  {titulo:"Sepia a la plancha con salteado de verduras",tipo:"Cena",ingredientes:"600g sepia limpia, pimiento, cebolla, calabacín, ajo, aceite, perejil, limón",preparacion:"Saltear las verduras en juliana 8 min. Marcar la sepia en plancha muy caliente 2 min por lado. Servir sobre las verduras con perejil y limón.",nota:"La sepia es muy baja en grasa y alta en proteína"},
+  {titulo:"Crema de calabaza con pollo desmenuzado",tipo:"Cena",ingredientes:"600g calabaza, 1 pechuga de pollo, cebolla, ajo, caldo de pollo, comino, aceite de oliva",preparacion:"Asar la calabaza con cebolla y ajo 30 min. Triturar con caldo hasta obtener crema. Cocer el pollo, desmenuzarlo y servir encima de la crema.",nota:"El comino realza mucho el sabor de la calabaza"},
+  {titulo:"Mejillones al vapor con verduras",tipo:"Cena",ingredientes:"1kg mejillones, 1 limón, perejil, vino blanco, zanahoria y apio para acompañar",preparacion:"Abrir los mejillones al vapor con vino blanco y perejil 5 min. Cocer las verduras al vapor por separado. Servir con el caldo de cocción.",nota:"Uno de los mariscos más baratos y nutritivos"},
+  {titulo:"Pisto manchego con huevos al plato",tipo:"Cena",ingredientes:"2 huevos, calabacín, berenjena, pimiento rojo y verde, tomate, cebolla, ajo, aceite, sal",preparacion:"Sofreír todas las verduras en dados durante 20 min a fuego medio. Hacer huecos en el pisto y cascar los huevos dentro. Tapar y cocer 5 min.",nota:"El pisto queda mejor de un día para otro"},
+  {titulo:"Ensalada de garbanzos tostados con pollo",tipo:"Comida",ingredientes:"300g garbanzos cocidos, 200g pechuga, rúcula, tomate cherry, cebolla morada, pimentón, aceite, limón",preparacion:"Tostar los garbanzos con pimentón en sartén sin aceite 5 min. Hacer el pollo a la plancha y filetearlo. Montar la ensalada y aliñar.",nota:"Los garbanzos tostados aportan un crujiente estupendo"},
+  {titulo:"Caballa al horno con patatas panadera",tipo:"Comida",ingredientes:"2 caballas (300g c/u), 400g patatas, cebolla, pimiento, aceite, orégano, limón, sal",preparacion:"Hacer una cama de patatas y cebolla en rodajas finas, hornear 20 min a 190°C. Colocar las caballas encima y hornear 15 min más con limón.",nota:"La caballa es muy económica y llena de omega-3"},
+  {titulo:"Revuelto de espárragos trigueros con gambas",tipo:"Cena",ingredientes:"4 huevos, 200g espárragos trigueros, 150g gambas peladas, ajo, aceite, sal, pimienta",preparacion:"Saltear los espárragos troceados con ajo 4 min. Añadir gambas 2 min. Incorporar los huevos batidos y remover a fuego lento hasta cuajar cremoso.",nota:"La clave es el fuego bajo para un revuelto muy cremoso"}
+];
+
+function surpriseDish(){
   const btn=document.getElementById('surprise-btn');
   const resultDiv=document.getElementById('surprise-result');
   btn.classList.add('loading');
   btn.disabled=true;
   resultDiv.style.display='none';
 
-  // Recopilar platos existentes para que Claude no los repita
-  const existing=[];
-  ['jose','gabriela'].forEach(p=>{
-    DATA[p][diet].days.forEach((d,i)=>{
-      if(!d.libre){
-        if(d.com) existing.push(d.com.substring(0,60));
-        if(d.cen) existing.push(d.cen.substring(0,60));
-      }
-    });
-  });
-
-  const prompt=`Eres nutricionista de NutriPlan. Genera UN plato sorpresa completo (comida o cena) que:
-- Sea apto para dieta de adelgazamiento (~1700-1800 kcal/día)
-- Use ingredientes mediterráneos, proteína magra y verduras
-- NO repita ninguno de estos platos ya existentes en el menú: ${existing.slice(0,20).join(' | ')}
-- Incluya cantidad en gramos, método de cocción y opcionalmente una pequeña nota de sabor
-- Sea para 2 personas (Jose y Gabbi, sin lactosa para Jose, sin salmón ni frutos secos para Gabbi)
-- Sea diferente, apetecible y fácil de preparar
-
-Responde SOLO con este formato JSON (sin markdown):
-{"titulo":"nombre del plato","tipo":"Comida o Cena","ingredientes":"lista breve con cantidades","preparacion":"2-3 frases máximo","nota":"tip de sabor opcional"}`;
-
-  try {
-    const resp=await fetch('https://nutriplan-api-tau.vercel.app/api/surprise',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt})
-    });
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    const data=await resp.json();
-    if(!data.content) throw new Error('Sin contenido: '+JSON.stringify(data));
-    const raw=data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-    let plato;
-    try{ plato=JSON.parse(raw); }
-    catch(pe){ throw new Error('JSON inválido: '+raw.substring(0,120)); }
+  setTimeout(()=>{
+    const plato=PLATOS_SORPRESA[Math.floor(Math.random()*PLATOS_SORPRESA.length)];
     resultDiv.style.display='block';
     resultDiv.innerHTML=`<div class="surprise-result">
-      <div class="surprise-badge">🎲 Plato sorpresa · ${plato.tipo||'Plato'}</div>
-      <div class="surprise-title">${plato.titulo||'Plato sorpresa'}</div>
+      <div class="surprise-badge">🎲 Plato sorpresa · ${plato.tipo}</div>
+      <div class="surprise-title">${plato.titulo}</div>
       <div class="surprise-body">
-        <strong>Ingredientes:</strong> ${plato.ingredientes||''}<br><br>
-        <strong>Preparación:</strong> ${plato.preparacion||''}
+        <strong>Ingredientes:</strong> ${plato.ingredientes}<br><br>
+        <strong>Preparación:</strong> ${plato.preparacion}
         ${plato.nota?`<br><br><em style="color:var(--amber)">💡 ${plato.nota}</em>`:''}
       </div>
       <button class="surprise-new-btn" onclick="surpriseDish()">🎲 Otro plato sorpresa</button>
     </div>`;
-  } catch(e){
-    console.error('Surprise error:',e);
-    resultDiv.style.display='block';
-    resultDiv.innerHTML=`<div class="surprise-result" style="border-color:var(--neon)">
-      <div class="surprise-body" style="color:var(--text2)">Error: ${e.message}</div>
-    </div>`;
-  }
-  btn.classList.remove('loading');
-  btn.disabled=false;
+    btn.classList.remove('loading');
+    btn.disabled=false;
+  },400);
 }
 
 initPin();
