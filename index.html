@@ -1002,17 +1002,23 @@ function openDay(idx){
   const fixedNav=document.getElementById('day-nav-fixed');
   if(fixedNav){fixedNav.style.padding='10px 22px';fixedNav.innerHTML=`<button class="dnav-btn" ${idx===0?'disabled':''} onclick="openDay(${idx-1})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg> Día ${idx}</button><button class="dnav-btn" ${idx===maxDay?'disabled':''} onclick="openDay(${idx+1})">Día ${idx+2} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></button>`;}
 
-  function mealCard(ico,cls,lbl,jTxt,gTxt){
+  const jMap=MENU_RECETAS.jose[idx]||{};
+  const gMap=MENU_RECETAS.gabriela[idx]||{};
+
+  function mealCard(ico,cls,lbl,jTxt,gTxt,jKey,gKey){
     const c=document.createElement('div');c.className=`meal-card ${cls}`;
     const same=jTxt===gTxt;
-    const jR=findReceta&&lbl!=='Postre'?findReceta(jTxt):null;
-    const gR=findReceta&&lbl!=='Postre'?findReceta(gTxt):null;
-    const jClick=jR?`onclick="openReceta(this.dataset.txt)" data-txt="${jTxt.replace(/"/g,'&quot;')}" style="cursor:pointer"`:'';
-    const gClick=gR?`onclick="openReceta(this.dataset.txt)" data-txt="${gTxt.replace(/"/g,'&quot;')}" style="cursor:pointer"`:'';
+    const jR=jKey&&RECETAS[jKey]?jKey:null;
+    const gR=gKey&&RECETAS[gKey]?gKey:null;
+    const jClick=jR?`onclick="openRecetaByKey('${jR}')" style="cursor:pointer"`:'';
+    const gClick=gR?`onclick="openRecetaByKey('${gR}')" style="cursor:pointer"`:'';
     const jHint=jR?`<div class="receta-hint">👆 toca para ver la receta</div>`:'';
     const gHint=gR?`<div class="receta-hint">👆 toca para ver la receta</div>`:'';
     if(same){
-      c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${ico}</div><div class="mc-lbl">${lbl}</div></div><div class="mc-body" ${jClick}>${jTxt}${jHint}</div>`;
+      // Si los dos comparten plato, usamos la receta de Jose como referencia
+      const sameClick=jR?`onclick="openRecetaByKey('${jR}')" style="cursor:pointer"`:'';
+      const sameHint=jR?`<div class="receta-hint">👆 toca para ver la receta</div>`:'';
+      c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${ico}</div><div class="mc-lbl">${lbl}</div></div><div class="mc-body" ${sameClick}>${jTxt}${sameHint}</div>`;
     } else {
       c.innerHTML=`<div class="mc-hdr"><div class="mc-ico">${ico}</div><div class="mc-lbl">${lbl}</div></div>
         <div style="display:flex;flex-direction:column;gap:10px;padding-left:8px">
@@ -1026,12 +1032,12 @@ function openDay(idx){
     return c;
   }
 
-  body.appendChild(mealCard('☀️','des','Desayuno',jD.desayuno,gD.desayuno));
-  body.appendChild(mealCard('🥪','alm','Almuerzo',jDay.alm,gDay.alm));
-  body.appendChild(mealCard('🍽️','com','Comida principal',jDay.com,gDay.com));
-  body.appendChild(mealCard('🍎','mer','Merienda',jDay.mer,gDay.mer));
-  body.appendChild(mealCard('🌙','cen','Cena',jDay.cen,gDay.cen));
-  body.appendChild(mealCard('🍮','pos','Postre',`Comida: ${jD.postComida} · Cena: ${jD.postCena}`,`Comida: ${gD.postComida} · Cena: ${gD.postCena}`));
+  body.appendChild(mealCard('☀️','des','Desayuno',jD.desayuno,gD.desayuno,null,null));
+  body.appendChild(mealCard('🥪','alm','Almuerzo',jDay.alm,gDay.alm,jMap.alm,gMap.alm));
+  body.appendChild(mealCard('🍽️','com','Comida principal',jDay.com,gDay.com,jMap.com,gMap.com));
+  body.appendChild(mealCard('🍎','mer','Merienda',jDay.mer,gDay.mer,jMap.mer,gMap.mer));
+  body.appendChild(mealCard('🌙','cen','Cena',jDay.cen,gDay.cen,jMap.cen,gMap.cen));
+  body.appendChild(mealCard('🍮','pos','Postre',`Comida: ${jD.postComida} · Cena: ${jD.postCena}`,`Comida: ${gD.postComida} · Cena: ${gD.postCena}`,null,null));
 
   if(jDay.nota){const nc=document.createElement('div');nc.className='meal-card';nc.style.borderColor='rgba(255,209,102,0.3)';nc.innerHTML=`<div class="mc-body" style="color:var(--amber);padding-left:8px">💡 ${jDay.nota}</div>`;body.appendChild(nc);}
 
@@ -1778,10 +1784,10 @@ const RECETAS={
     i:["1 brick caldo de pollo (600ml)","60g fideos finos (Jose) / 40g (Gabbi)","2 contramuslos sin piel (200g Jose / 125g Gabbi)","Sal, sazonador"],
     p:["Calienta el caldo de pollo de brick en una cazuela hasta que hierva.","Añade los fideos y cuece 4-5 min hasta que estén al dente.","Salpimienta los contramuslos y cocínalos a la plancha, 6-7 min por cada lado.","Comprueba que el pollo está bien hecho por dentro.","Sirve el caldo con fideos en un bol y el contramuslo aparte."],
     tip:"Con caldo de brick de buena calidad el resultado es igual de sabroso en la mitad de tiempo."},
-  arroz_salmon_teriyaki:{n:"Arroz con salmón al natural y teriyaki",t:"25 min",r:"2 personas (Jose)",
-    i:["120g arroz en seco","2 latas de salmón al natural","8ml salsa teriyaki","150g brócoli salteado","Aceite, sal"],
-    p:["Cuece el arroz en agua con sal 18-20 min. Escurre y reserva.","Cuece el brócoli al vapor 5-6 min y saltea en sartén con aceite 2 min.","Escurre el salmón y desmenúzalo suavemente.","Mezcla el arroz con el brócoli en sartén 1-2 min.","Incorpora el salmón y la salsa teriyaki. Mezcla y apaga el fuego.","Sirve inmediatamente."],
-    tip:"La salsa teriyaki tiene mucho sabor, con 8ml es suficiente."},
+  arroz_salmon_teriyaki:{n:"Arroz con salmón al natural y teriyaki",t:"20 min",r:"2 personas",
+    i:["120g arroz en seco (Jose) / 80g (Gabbi)","2 latas salmón al natural (Jose) / 1 lata (Gabbi)","8ml salsa teriyaki","150g brócoli salteado (Jose) / 150g espárragos (Gabbi)","Aceite, sal"],
+    p:["Cuece el arroz en agua con sal 18-20 min. Escurre y reserva tapado.","Saltea el brócoli (Jose) o los espárragos (Gabbi) en sartén con un poco de aceite 4-5 min.","Añade la salsa teriyaki a las verduras, mezcla 1 min y apaga el fuego.","Abre las latas de salmón, escúrrelas bien y desmenuza el salmón con un tenedor.","Mezcla el arroz con las verduras en la sartén a fuego suave 1-2 min.","Incorpora el salmón desmenuzado, mezcla con cuidado y sirve inmediatamente."],
+    tip:"El salmón en lata ya está cocido — solo hay que calentarlo al final para que no se seque."},
   arroz_esparragos_teriyaki:{n:"Arroz con espárragos y teriyaki",t:"22 min",r:"2 personas (Gabbi)",
     i:["80g arroz en seco","150g espárragos verdes","1 lata salmón al natural","8ml salsa teriyaki","Aceite, sal"],
     p:["Cuece el arroz en agua salada 18 min. Escurre y reserva.","Trocea los espárragos y saltéalos en sartén con aceite 4-5 min.","Añade la salsa teriyaki y mezcla 1 min.","Incorpora el arroz y el salmón escurrido y desmenuzado.","Mezcla todo y sirve."],
@@ -1863,7 +1869,7 @@ const RECETAS={
     p:["Sofríe la cebolla picada en aceite 4 min. Añade calabacín en dados y saltea 6-8 min.","Incorpora el tomate frito y orégano. Cocina 5 min a fuego suave.","Escurre el atún y añádelo al pisto fuera del fuego.","Fríe o cocina los huevos en sartén con poco aceite.","Tuesta el pan y sirve todo junto."],
     tip:"El pisto con atún y huevo es una cena rápida y completa con muy pocas calorías."},
   tortilla_calabacin:{n:"Tortilla de calabacín con cebolla",t:"20 min",r:"2 personas",
-    i:["4 huevos (Jose) / 1 huevo+100g claras (Gabbi)","1 calabacín grande","1 cebolla","Aceite, sal, pimienta"],
+    i:["2 huevos + 100g claras líquidas (Jose) / 1 huevo + 100g claras (Gabbi)","1 calabacín grande","1 cebolla","Aceite, sal, pimienta"],
     p:["Corta el calabacín en láminas finas. Pica la cebolla.","Sofríe la cebolla en aceite 4 min. Añade el calabacín, sal y cocina 6-8 min.","Bate los huevos/claras con sal. Añade el sofrito bien escurrido de aceite.","Calienta sartén antiadherente con poco aceite. Vierte la mezcla y baja el fuego.","Cuaja 3-4 min, da la vuelta con un plato y cuaja 2-3 min más.","Deja reposar 2 min antes de servir."],
     tip:"Escurrir bien el calabacín del aceite antes de mezclarlo evita que la tortilla quede aceitosa."},
   pizza_fajita:{n:"Pizza fajita: wrap con tomate, champiñones y jamón",t:"15 min",r:"2 personas",
@@ -1916,6 +1922,59 @@ const RECETAS={
     tip:"Los frutos congelados dan más cremosidad sin necesitar hielo."}
 };
 
+// ══ MAPA DIRECTO: día/persona/toma → clave de receta ══
+const MENU_RECETAS={
+  jose:[
+    {alm:'pan_tomate_jamon',mer:'batido_frutas',com:'arroz_pisto_pollo',cen:'merluza_crema_esparragos'},
+    {alm:'yogur_platano',mer:'batido_frutas',com:'quinoa_ensalada',cen:'pollo_esparragos_boniato'},
+    {alm:'pan_atun',mer:'yogur_platano',com:'macarrones_ternera',cen:'tortilla_calabacin'},
+    {alm:'pan_aguacate',mer:'tortitas_hummus',com:'arroz_salmon_teriyaki',cen:'lomo_pisto_calabacin'},
+    {alm:'yogur_platano',mer:null,com:'caldo_fideos',cen:'sepia_champi_gambas'},
+    {alm:null,mer:null,com:null,cen:'crema_calabacin_tortilla'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'espaguetis_pavo',cen:'pollo_berenjena_boniato'},
+    {alm:'yogur_platano',mer:'tortitas_hummus',com:'macarrones_atun',cen:'pisto_atun_huevo'},
+    {alm:'pan_tomate_jamon',mer:'batido_frutas',com:'pollo_horno_boniato',cen:'ternera_champi_crema'},
+    {alm:'pan_aguacate',mer:'tortitas_hummus',com:'berenjena_rellena',cen:'pizza_fajita'},
+    {alm:'yogur_platano',mer:null,com:'fideos_chinos',cen:'lomo_pisto_berenjena'},
+    {alm:null,mer:null,com:null,cen:'merluza_crema_puerro'},
+    {alm:'pan_atun',mer:'yogur_platano',com:'albondigas_airfryer',cen:'salmon_teriyaki'},
+    {alm:'yogur_platano',mer:'batido_frutas',com:'ensalada_proteica',cen:'ternera_berenjena_boniato'},
+    {alm:'pan_tomate_jamon',mer:null,com:'noquis_champi_pollo',cen:'perrito_pavo'}
+  ],
+  gabriela:[
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'arroz_pisto_pollo',cen:'emperador_plancha'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'quinoa_ensalada',cen:'emperador_teriyaki'},
+    {alm:'pan_tomate_jamon',mer:'tortitas_hummus',com:'macarrones_ternera',cen:'tortilla_calabacin'},
+    {alm:'pan_aguacate',mer:'yogur_platano',com:'arroz_esparragos_teriyaki',cen:'lomo_pisto_berenjena'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'caldo_fideos',cen:'sepia_champi_gambas'},
+    {alm:null,mer:null,com:null,cen:'crema_calabacin_tortilla'},
+    {alm:'pan_tomate_jamon',mer:'tortitas_hummus',com:'espaguetis_pavo',cen:'pollo_berenjena_boniato'},
+    {alm:'yogur_platano',mer:'yogur_platano',com:'macarrones_gambas',cen:'pisto_atun_huevo'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'pollo_horno_boniato',cen:'ternera_champi_crema'},
+    {alm:'pan_aguacate',mer:'tortitas_hummus',com:'berenjena_rellena',cen:'pizza_fajita'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'fideos_chinos',cen:'lomo_pisto_calabacin'},
+    {alm:null,mer:null,com:null,cen:'emperador_plancha'},
+    {alm:'pan_tomate_jamon',mer:'tortitas_hummus',com:'albondigas_airfryer',cen:'emperador_teriyaki'},
+    {alm:'pan_tomate_jamon',mer:'yogur_platano',com:'ensalada_proteica',cen:'ternera_berenjena_boniato'},
+    {alm:'pan_tomate_jamon',mer:'tortitas_hummus',com:'noquis_champi_pollo',cen:'perrito_pavo'}
+  ]
+};
+function openRecetaByKey(key){
+  const receta=RECETAS[key];
+  if(!receta)return;
+  const overlay=document.getElementById('receta-overlay');
+  document.getElementById('receta-titulo').textContent=receta.n;
+  document.getElementById('receta-meta').textContent=`⏱ ${receta.t} · 👥 ${receta.r}`;
+  document.getElementById('receta-body').innerHTML=`
+    <div class="receta-sec">🛒 Ingredientes</div>
+    <div class="receta-ing-list">${receta.i.map(x=>`<div class="receta-ing">${x}</div>`).join('')}</div>
+    <div class="receta-sec">👨‍🍳 Elaboración</div>
+    ${receta.p.map((s,i)=>`<div class="receta-paso"><div class="receta-paso-num">${i+1}</div><div class="receta-paso-txt">${s}</div></div>`).join('')}
+    ${receta.tip?`<div class="receta-tip">💡 <strong>Truco:</strong> ${receta.tip}</div>`:''}
+    <div style="height:20px"></div>`;
+  overlay.style.display='flex';
+}
+
 function norm(s){return (s||'').toLowerCase().replace(/á/g,'a').replace(/é/g,'e').replace(/í/g,'i').replace(/ó/g,'o').replace(/ú/g,'u').replace(/ü/g,'u').replace(/ñ/g,'n');}
 function matchReceta(t){
   if(t.includes('quinoa')) return RECETAS.quinoa_ensalada;
@@ -1964,9 +2023,16 @@ function matchReceta(t){
   return null;
 }
 function findReceta(txt){
-  const partes=norm(txt).split('+');
+  const full=norm(txt);
+  // Primero comprueba el texto completo para platos compuestos (ej: arroz+salmon)
+  if(full.includes('arroz')&&full.includes('salmon')) return RECETAS.arroz_salmon_teriyaki;
+  if(full.includes('arroz')&&full.includes('esparrago')) return RECETAS.arroz_esparragos_teriyaki;
+  if(full.includes('arroz')&&(full.includes('pisto')||full.includes('pollo'))) return RECETAS.arroz_pisto_pollo;
+  if(full.includes('arroz')&&full.includes('teriyaki')) return RECETAS.arroz_salmon_teriyaki;
+  // Luego por partes (plato principal antes del "+")
+  const partes=full.split('+');
   for(const p of partes){const r=matchReceta(p.trim());if(r)return r;}
-  return matchReceta(norm(txt));
+  return matchReceta(full);
 }
 function openReceta(txt){
   const receta=findReceta(txt);
